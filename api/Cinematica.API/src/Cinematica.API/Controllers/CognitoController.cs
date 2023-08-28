@@ -4,6 +4,7 @@ using Amazon.CognitoIdentityProvider.Model;
 using Cinematica.API.Models.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
+using System.Net;
 
 namespace Cinematica.API.Controllers;
 
@@ -45,8 +46,8 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/confirm_registration
-    [HttpPost("confirm_registration")]
+    // POST api/cognito/confirm-registration
+    [HttpPost("confirm-registration")]
     public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationRequest model)
     {
         try {
@@ -58,7 +59,7 @@ public class CognitoController : ControllerBase
                 };
 
             var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
-            return Ok(new { message = "Verification successful." });;
+            return Ok(new { message = "Verification successful." });
         }
         catch(Exception e) {
             return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
@@ -71,8 +72,8 @@ public class CognitoController : ControllerBase
     {
         try
         {
-            var cognitoUserPool = new CognitoUserPool(APP_CONFIG.GetValue<String>("UserPoolId"), APP_CONFIG.GetValue<String>("AppClientId"), cognitoIdClient);
-            var cognitoUser = new CognitoUser(model.Username, APP_CONFIG.GetValue<String>("AppClientId"), cognitoUserPool, cognitoIdClient);
+            var cognitoUserPool = new CognitoUserPool(APP_CONFIG.GetValue<string>("UserPoolId"), APP_CONFIG.GetValue<string>("AppClientId"), cognitoIdClient);
+            var cognitoUser = new CognitoUser(model.Username, APP_CONFIG.GetValue<string>("AppClientId"), cognitoUserPool, cognitoIdClient);
         
             InitiateSrpAuthRequest authRequest = new InitiateSrpAuthRequest()
             {
@@ -97,4 +98,85 @@ public class CognitoController : ControllerBase
             return BadRequest(new { message = "Incorrect username or password." });
         }
     }
+
+    // POST api/cognito/request-password-reset
+    [HttpPost("request-password-reset")]    
+    public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
+    {
+        try {
+            var user = await FindUserByEmailAddress(email);
+
+            if (user != null) {
+                var forgotPasswordResponse = await cognitoIdClient.ForgotPasswordAsync
+                (
+                    new ForgotPasswordRequest 
+                    { 
+                        ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                        Username = user.Username
+                    }
+                ); 
+                
+                return Ok(new { message = "Reset password email has been sent." });
+        }
+        else 
+        {
+            return BadRequest(new { message = "Email not found." });
+        }
+        }
+        catch(Exception e) {
+            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+        }
+        
+
+    }
+
+    // POST api/cognito/reset-password
+    [HttpPost("reset-password")] 
+    public async Task<IActionResult> ResetPassword(ResetPassword model)
+    {
+        try
+        {
+            var user = await FindUserByEmailAddress(model.Email);
+            if(user != null) {
+                var response = await cognitoIdClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
+                {
+                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                    Username = user.Username,
+                    Password = model.Password,
+                    ConfirmationCode = model.ConfirmationCode
+                });
+                return Ok(new { message = "Password has been reset." });
+            }
+            else {
+                return BadRequest(new { message = "Email not found." });
+            }
+            
+        } 
+        catch (Exception e)
+        { 
+            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+        } 
+    }
+
+    // Helper function to find a user by email address (assuming that email is unique)
+    private async Task<UserType?> FindUserByEmailAddress(string emailAddress)
+    {
+        ListUsersRequest listUsersRequest = new ListUsersRequest
+        {
+            UserPoolId = APP_CONFIG.GetValue<string>("UserPoolId"),
+            Filter = "email = \"" + emailAddress + "\""
+        }; 
+        
+        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+
+        if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK) 
+        {
+            var users = listUsersResponse.Users; 
+            return users.FirstOrDefault();
+        }
+        else 
+        {
+            return null;
+        }
+    } 
 }

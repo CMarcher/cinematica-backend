@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 public class ConfirmRegistrationRequest
 {
     [Required]
-    public string? ConfirmationCode { get; set; }
+    public string ConfirmationCode { get; set; }
     [Required]
-    public string? Username { get; set; }
+    public string Username { get; set; }
 }

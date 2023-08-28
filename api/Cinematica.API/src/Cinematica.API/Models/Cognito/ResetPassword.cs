@@ -2,10 +2,12 @@ namespace Cinematica.API.Models.Cognito;
 
 using System.ComponentModel.DataAnnotations;
 
-public class LoginRequest
+public class ResetPassword
 {
+    public string ConfirmationCode { get; set; }
+
     [Required]
-    public string Username { get; set; }
+    public string Email { get; set; }
     [Required]
     public string Password { get; set; }
 }
