@@ -46,26 +46,6 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/confirm-registration
-    [HttpPost("confirm-registration")]
-    public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationRequest model)
-    {
-        try {
-            var regRequest = new ConfirmSignUpRequest
-                {
-                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
-                    Username = model.Username,
-                    ConfirmationCode = model.ConfirmationCode
-                };
-
-            var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
-            return Ok(new { message = "Verification successful." });
-        }
-        catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
-        }
-    }
-
     // POST api/cognito/login
     [HttpPost("login")]    
     public async Task<IActionResult> Login(LoginRequest model)
@@ -99,6 +79,55 @@ public class CognitoController : ControllerBase
         }
     }
 
+    // POST api/cognito/confirm-registration
+    [HttpPost("confirm-registration")]
+    public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationRequest model)
+    {
+        try {
+            var regRequest = new ConfirmSignUpRequest
+                {
+                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                    Username = model.Username,
+                    ConfirmationCode = model.ConfirmationCode
+                };
+
+            var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
+            return Ok(new { message = "Verification successful." });
+        }
+        catch(Exception e) {
+            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+        }
+    }
+
+    // POST api/cognito/resend-confirmation-code
+    [HttpPost("resend-confirmation-code")]
+    public async Task<IActionResult> ResendConfirmationCode([FromForm] string email)
+    {
+        try {
+            var user = await FindUserByEmailAddress(email);
+
+            if (user != null) {
+                var forgotPasswordResponse = await cognitoIdClient.ResendConfirmationCodeAsync
+                (
+                    new ResendConfirmationCodeRequest 
+                    { 
+                        ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                        Username = user.Username
+                    }
+                ); 
+                
+                return Ok(new { message = "Confirmation code has been sent." });
+        }
+        else 
+        {
+            return BadRequest(new { message = "Email not found." });
+        }
+        }
+        catch(Exception e) {
+            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+        }
+    }
+
     // POST api/cognito/request-password-reset
     [HttpPost("request-password-reset")]    
     public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
@@ -126,8 +155,6 @@ public class CognitoController : ControllerBase
         catch(Exception e) {
             return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
         }
-        
-
     }
 
     // POST api/cognito/reset-password
