@@ -9,12 +9,12 @@ using System.Net;
 namespace Cinematica.API.Controllers;
 
 [Route("api/[controller]")]
-public class CognitoController : ControllerBase
+public class AuthController : ControllerBase
 {
     private readonly IConfiguration APP_CONFIG;
     private AmazonCognitoIdentityProviderClient cognitoIdClient;
 
-    public CognitoController(IConfiguration config) {
+    public AuthController(IConfiguration config) {
         APP_CONFIG = config.GetSection("AWS");
 
         cognitoIdClient = new AmazonCognitoIdentityProviderClient
@@ -25,28 +25,33 @@ public class CognitoController : ControllerBase
         );
     }
     
-    // POST api/cognito/register
+    // POST api/auth/register
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest model)
     {
         try {      
-            var regRequest = new SignUpRequest
+            var user = await FindUserByEmailAddress(model.Email);
+            if(user == null) {
+                var regRequest = new SignUpRequest
                 {
                     ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
                     Username = model.Username,
                     Password = model.Password,
                     UserAttributes = { new AttributeType { Name = "email", Value = model.Email } }
                 };
-
-            var ret = await cognitoIdClient.SignUpAsync(regRequest);
-            return Ok(new { message = "Registration successful." });;
+                var ret = await cognitoIdClient.SignUpAsync(regRequest);
+                return Ok(new { message = "Registration successful." });;
+            }
+            else {
+                return BadRequest(new { message = "Email already registered." });
+            } 
         }
         catch(Exception e) {
             return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
         }
     }
 
-    // POST api/cognito/login
+    // POST api/auth/login
     [HttpPost("login")]    
     public async Task<IActionResult> Login(LoginRequest model)
     {
@@ -79,7 +84,7 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/confirm-registration
+    // POST api/auth/confirm-registration
     [HttpPost("confirm-registration")]
     public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationRequest model)
     {
@@ -99,7 +104,7 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/resend-confirmation-code
+    // POST api/auth/resend-confirmation-code
     [HttpPost("resend-confirmation-code")]
     public async Task<IActionResult> ResendConfirmationCode([FromForm] string email)
     {
@@ -128,7 +133,7 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/request-password-reset
+    // POST api/auth/request-password-reset
     [HttpPost("request-password-reset")]    
     public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
     {
@@ -157,7 +162,7 @@ public class CognitoController : ControllerBase
         }
     }
 
-    // POST api/cognito/reset-password
+    // POST api/auth/reset-password
     [HttpPost("reset-password")] 
     public async Task<IActionResult> ResetPassword(ResetPassword model)
     {
