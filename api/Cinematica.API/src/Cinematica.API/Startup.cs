@@ -1,4 +1,6 @@
-﻿namespace Cinematica.API;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace Cinematica.API;
 
 public class Startup
 {
@@ -13,6 +15,13 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
+
+        services.AddCors(options => {
+            options.AddPolicy("AllowReactFrontend",
+                builder => builder.WithOrigins("https://localhost:3000")
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
@@ -29,6 +38,8 @@ public class Startup
 
         app.UseAuthorization();
 
+        app.UseCors("AllowReactFrontend");
+        
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
