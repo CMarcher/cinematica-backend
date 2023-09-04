@@ -32,7 +32,7 @@ jobs:
 
     - name: Build and Package
       run: |
-        dotnet lambda package "output.zip" --region "ap-southeast-2" --project-location Cinematica.API \
+        dotnet lambda package "output.zip" --region "ap-southeast-2" --project-location Cinematica.API/src/Cinematica.API \
           --configuration "Release" --msbuild-parameters "--no-restore" --disable-interactive true
       
     - name: Test
