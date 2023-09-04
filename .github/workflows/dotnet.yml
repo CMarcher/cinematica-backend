@@ -1,0 +1,46 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+env:
+  LAMBDA_ZIP_FILE: "output.zip"
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Setup Lambda tools for .NET
+      run: dotnet tool install -g Amazon.Lambda.Tools
+        
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build and Package
+      run: |
+        dotnet lambda package "output.zip" --region "ap-southeast-2" --project-location ./Cinematica.API \
+          --configuration "Release" --msbuild-parameters "--no-restore" --disable-interactive
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Upload S3
+      uses: a-sync/s3-uploader@1b1020511c685aeb5be20f23190d2d1b63ab19a6
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: "ap-southeast-2"
+        S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        S3_KEY: ${{ secrets.S3_KEY }}
+        FILE: ./$LAMBDA_ZIP_FILE
