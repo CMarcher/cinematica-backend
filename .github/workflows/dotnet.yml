@@ -9,8 +9,6 @@ env:
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -24,7 +22,7 @@ jobs:
         dotnet-version: 6.0.x
 
     - name: Setup Lambda tools for .NET
-      uses: Thomas-X/with-lambda-tools@v1
+      run: dotnet tool install -g Amazon.Lambda.Tools
         
     - name: Restore dependencies
       run: dotnet restore
