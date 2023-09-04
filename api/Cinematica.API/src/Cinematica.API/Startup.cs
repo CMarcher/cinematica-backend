@@ -1,4 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TMDbLib.Objects.General;
+using TMDbLib.Client;
+using DotNetEnv;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace Cinematica.API;
 
@@ -14,6 +18,11 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
+
+        // Load environment variables from .env file
+        DotNetEnv.Env.Load();
+        var ApiKey = DotNetEnv.Env.GetString("TMDbApiKey");
+
         services.AddControllers();
 
         services.AddCors(options => {
@@ -22,6 +31,9 @@ public class Startup
                 .AllowAnyMethod()
                 .AllowAnyHeader());
         });
+
+        var tmdbClient = new TMDbClient(ApiKey);
+        services.AddSingleton(tmdbClient);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
