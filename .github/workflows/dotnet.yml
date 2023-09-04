@@ -9,6 +9,8 @@ env:
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - api/**
 
 jobs:
   build:
