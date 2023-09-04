@@ -33,7 +33,7 @@ jobs:
     - name: Build and Package
       run: |
         dotnet lambda package "output.zip" --region "ap-southeast-2" --project-location ./Cinematica.API \
-          --configuration "Release" --msbuild-parameters "--no-restore" --disable-interactive
+          --configuration "Release" --msbuild-parameters "--no-restore" --disable-interactive true
       
     - name: Test
       run: dotnet test --no-build --verbosity normal
