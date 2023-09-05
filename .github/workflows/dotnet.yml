@@ -46,4 +46,6 @@ jobs:
         AWS_REGION: "ap-southeast-2"
         S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         S3_KEY: ${{ secrets.S3_KEY }}
-        FILE: ./output.zip
+        FILE: ./api/output.zip 
+        # Only run commands have the working directory set to what we specified in defaults. 
+        # This action will run in the root of the repo
