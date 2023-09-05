@@ -12,5 +12,5 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "api_lambda_bucket" {
-    bucket = "api-lambda-source"
+    bucket = "cinematica-api-lambda-source"
 }
