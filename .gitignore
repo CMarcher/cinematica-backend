@@ -32,3 +32,11 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+#Ignore build files from .net
+.vscode
+.vs
+bin
+obj
+appsettings.Development.json
+api\Cinematica.API\src\Cinematica.API\.vs
