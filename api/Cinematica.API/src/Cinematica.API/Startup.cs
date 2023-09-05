@@ -18,7 +18,10 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
-        TMDbClient client = new TMDbClient("8ffc6501c39d47b08fdb929144b5b4b4");
+
+        string TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
+
+        TMDbClient client = new TMDbClient(TMDbApiKey);
         services.AddSingleton(client);
 
         services.AddControllers();
@@ -32,7 +35,7 @@ public class Startup
 
         services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinamatica", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinamatica API", Version = "v1" });
             });
     }
 
