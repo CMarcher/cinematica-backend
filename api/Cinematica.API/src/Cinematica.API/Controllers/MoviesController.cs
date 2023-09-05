@@ -1,80 +1,44 @@
-﻿using Cinematica.API.Models.TMDb;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using TMDbLib.Client;
+using TMDbLib.Objects.General;
+using TMDbLib.Objects.Movies;
+using TMDbLib.Objects.Search;
 
-namespace Cinematica.API.Controllers;
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-public class MoviesController : ControllerBase
+namespace Cinematica.API.Controllers
 {
-    private readonly TMDbClient _tmdbClient;
-
-    public MoviesController(TMDbClient tmdbClient)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class MoviesController : ControllerBase
     {
-        _tmdbClient = tmdbClient;
-    }
+        private readonly TMDbClient _tmdbClient;
+        private readonly JsonSerializerOptions options;
 
-    [HttpGet("search")]
-    public async Task<IActionResult> Search(string query)
-    {
-        try
+        public MoviesController(TMDbClient tmdbClient)
         {
-            var searchResults = await _tmdbClient.SearchMovieAsync(query);
-
-            // Map the search results from TMDbLib models to your MovieSearchResult model
-            var movieSearchResults = searchResults.Results.Select(result => new MovieSearchResults
+            _tmdbClient = tmdbClient;
+            options = new JsonSerializerOptions
             {
-                Id = result.Id,
-                Title = result.Title,
-                Overview = result.Overview,
-                ReleaseDate = (DateTime)result.ReleaseDate
-                // Map other properties as needed
-            }).ToList();
-
-            // Create a JsonResult with the search results
-            var jsonResult = new JsonResult(movieSearchResults);
-
-            return jsonResult; // Return JSON data
-        }
-        catch (Exception ex)
-        {
-            // Handle errors
-            return BadRequest($"Error: {ex.Message}");
-        }
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Details(int id)
-    {
-        try
-        {
-            var movie = await _tmdbClient.GetMovieAsync(id);
-
-            // Map the movie details from TMDbLib models to your MovieDetails model
-            var movieDetails = new MovieDetails
-            {
-                Id = movie.Id,
-                Title = movie.Title,
-                Overview = movie.Overview,
-                Genres = movie.Genres.Select(genre => genre.Name).ToList(),
-                Cast = movie.Credits.Cast.Select(actor => new Actor
-                {
-                    Id = actor.Id,
-                    Name = actor.Name
-                    // Map other actor-related properties as needed
-                }).ToList()
-                // Map other properties as needed
+                WriteIndented = true
             };
-
-            // Create a JsonResult with the search results
-            var jsonResult = new JsonResult(movieDetails);
-
-            return jsonResult; // Return JSON data
         }
-        catch (Exception ex)
+
+        // GET: api/<MoviesController>/{searchTerm}
+        [HttpGet("search/{searchTerm}")]
+        public string Get(string searchTerm)
         {
-            // Handle errors
-            return BadRequest($"Error: {ex.Message}");
+            SearchContainer<SearchMovie> results = _tmdbClient.SearchMovieAsync(searchTerm).Result;
+            return JsonSerializer.Serialize(results, options);
+        }
+
+        // GET api/<MoviesController>/{id}
+        [HttpGet("{id}")]
+        public string Get(int id)
+        {
+            Movie movie = _tmdbClient.GetMovieAsync(id).Result;
+            return JsonSerializer.Serialize(movie, options);
         }
     }
-
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TMDbLib.Objects.General;
-using TMDbLib.Client;
-using DotNetEnv;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.OpenApi.Models;
+using TMDbLib.Client;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Cinematica.API;
 
@@ -18,10 +18,8 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
-
-        // Load environment variables from .env file
-        DotNetEnv.Env.Load();
-        var ApiKey = DotNetEnv.Env.GetString("TMDbApiKey");
+        TMDbClient client = new TMDbClient("8ffc6501c39d47b08fdb929144b5b4b4");
+        services.AddSingleton(client);
 
         services.AddControllers();
 
@@ -32,8 +30,10 @@ public class Startup
                 .AllowAnyHeader());
         });
 
-        var tmdbClient = new TMDbClient(ApiKey);
-        services.AddSingleton(tmdbClient);
+        services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinamatica", Version = "v1" });
+            });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
@@ -42,6 +42,13 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cinamatica API v1");
+                c.RoutePrefix = string.Empty; // Set the Swagger UI at the root URL
+                c.DocExpansion(DocExpansion.List); // Configure UI layout
+            });
         }
 
         app.UseHttpsRedirection();
