@@ -3,9 +3,6 @@
 
 name: .NET
 
-env:
-  LAMBDA_ZIP_FILE: "output.zip"
-
 on:
   push:
     branches: [ "main" ]
@@ -49,4 +46,4 @@ jobs:
         AWS_REGION: "ap-southeast-2"
         S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         S3_KEY: ${{ secrets.S3_KEY }}
-        FILE: ./$LAMBDA_ZIP_FILE
+        FILE: ./output.zip
