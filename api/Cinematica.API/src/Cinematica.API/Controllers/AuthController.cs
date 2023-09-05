@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     
     // POST api/auth/register
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest model)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest model)
     {
         try {      
             var user = await FindUserByEmailAddress(model.Email);
@@ -46,14 +46,20 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email already registered." });
             } 
         }
+        catch(UsernameExistsException) {
+            return BadRequest(new { message = "Username already registered" });
+        }
+        catch(InvalidPasswordException) {
+            return BadRequest(new { message = "Invalid password." });
+        }
         catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+            return BadRequest(new { message = e.GetType().ToString() });
         }
     }
 
     // POST api/auth/login
     [HttpPost("login")]    
-    public async Task<IActionResult> Login(LoginRequest model)
+    public async Task<IActionResult> Login([FromBody] LoginRequest model)
     {
         try
         {
@@ -82,11 +88,14 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { message = "Incorrect username or password." });
         }
+        catch(Exception e) {
+            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+        }
     }
 
     // POST api/auth/confirm-registration
     [HttpPost("confirm-registration")]
-    public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationRequest model)
+    public async Task<IActionResult> ConfirmRegistration([FromBody] ConfirmRegistrationRequest model)
     {
         try {
             var regRequest = new ConfirmSignUpRequest
@@ -99,14 +108,23 @@ public class AuthController : ControllerBase
             var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
             return Ok(new { message = "Verification successful." });
         }
+        catch(CodeMismatchException) {
+            return BadRequest(new { message = "Incorrect code." });
+        }
+        catch(ExpiredCodeException) {
+            return BadRequest(new { message = "Expired code." });
+        }
+        catch(UserNotFoundException) {
+            return BadRequest(new { message = "User doesn't exist." });
+        }
         catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+            return BadRequest(new { message = e.GetType().ToString() });
         }
     }
 
     // POST api/auth/resend-confirmation-code
     [HttpPost("resend-confirmation-code")]
-    public async Task<IActionResult> ResendConfirmationCode([FromForm] string email)
+    public async Task<IActionResult> ResendConfirmationCode([FromBody] string email)
     {
         try {
             var user = await FindUserByEmailAddress(email);
@@ -122,20 +140,19 @@ public class AuthController : ControllerBase
                 ); 
                 
                 return Ok(new { message = "Confirmation code has been sent." });
-        }
-        else 
-        {
-            return BadRequest(new { message = "Email not found." });
-        }
+            }
+            else {
+                return BadRequest(new { message = email + " Email not found." });
+            }
         }
         catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+            return BadRequest(new { message = e.GetType().ToString() });
         }
     }
 
     // POST api/auth/request-password-reset
     [HttpPost("request-password-reset")]    
-    public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
+    public async Task<IActionResult> RequestPasswordReset([FromBody] string email)
     {
         try {
             var user = await FindUserByEmailAddress(email);
@@ -151,20 +168,25 @@ public class AuthController : ControllerBase
                 ); 
                 
                 return Ok(new { message = "Reset password email has been sent." });
+            }
+            else {
+                return BadRequest(new { message = "Email not found." });
+            }
         }
-        else 
-        {
-            return BadRequest(new { message = "Email not found." });
+        catch(UserNotConfirmedException) {
+            return BadRequest(new { message = "User hasn't been verified." });
         }
+        catch(InvalidPasswordException) {
+            return BadRequest(new { message = "Invalid password." });
         }
         catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+            return BadRequest(new { message = e.GetType().ToString() });
         }
     }
 
     // POST api/auth/reset-password
     [HttpPost("reset-password")] 
-    public async Task<IActionResult> ResetPassword(ResetPassword model)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPassword model)
     {
         try
         {
@@ -181,13 +203,12 @@ public class AuthController : ControllerBase
             }
             else {
                 return BadRequest(new { message = "Email not found." });
-            }
-            
+            } 
         } 
-        catch (Exception e)
-        { 
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
-        } 
+        
+        catch(Exception e) {
+            return BadRequest(new { message = e.GetType().ToString() });
+        }
     }
 
     // Helper function to find a user by email address (assuming that email is unique)
