@@ -36,7 +36,7 @@ terraform.rc
 #Ignore build files from .net
 .vscode
 .vs
-bin
-obj
+bin/
+obj/
 appsettings.Development.json
 api\Cinematica.API\src\Cinematica.API\.vs
