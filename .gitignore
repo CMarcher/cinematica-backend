@@ -40,3 +40,4 @@ bin/
 obj/
 appsettings.Development.json
 api\Cinematica.API\src\Cinematica.API\.vs
+*.csproj.user
