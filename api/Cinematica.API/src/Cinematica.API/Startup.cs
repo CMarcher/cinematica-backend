@@ -21,6 +21,8 @@ public class Startup
     {
 
         string TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
+        TMDbClient client = new TMDbClient(TMDbApiKey);
+
         services.AddSingleton(client);
 
         services.AddControllers();
