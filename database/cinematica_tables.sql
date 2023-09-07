@@ -13,7 +13,7 @@ CREATE TABLE users
 (
     user_id varchar(255),
     profile_picture varchar(255),
-    cover_photo varchar(255),
+    cover_picture varchar(255),
     PRIMARY KEY (user_id)
 );
 

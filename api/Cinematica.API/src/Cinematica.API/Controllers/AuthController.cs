@@ -5,6 +5,7 @@ using Cinematica.API.Models.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
 using System.Net;
+using WebApi.Helpers;
 
 namespace Cinematica.API.Controllers;
 
@@ -12,10 +13,13 @@ namespace Cinematica.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration APP_CONFIG;
+    private DataContext context;
+    
     private AmazonCognitoIdentityProviderClient cognitoIdClient;
 
-    public AuthController(IConfiguration config) {
+    public AuthController(IConfiguration config, DataContext context) {
         APP_CONFIG = config.GetSection("AWS");
+        this.context = context;
 
         cognitoIdClient = new AmazonCognitoIdentityProviderClient
         (
@@ -24,7 +28,7 @@ public class AuthController : ControllerBase
             RegionEndpoint.GetBySystemName(APP_CONFIG.GetValue<string>("Region"))
         );
     }
-    
+
     // POST api/auth/register
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest model)
@@ -32,6 +36,7 @@ public class AuthController : ControllerBase
         try {      
             var user = await FindUserByEmailAddress(model.Email);
             if(user == null) {
+                // create and send registration request to cognito
                 var regRequest = new SignUpRequest
                 {
                     ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
@@ -40,7 +45,18 @@ public class AuthController : ControllerBase
                     UserAttributes = { new AttributeType { Name = "email", Value = model.Email } }
                 };
                 var ret = await cognitoIdClient.SignUpAsync(regRequest);
-                return Ok(new { message = "Registration successful." });;
+
+                // add user id to the database
+                var getRequest = new AdminGetUserRequest()
+                {
+                    UserPoolId = APP_CONFIG.GetValue<string>("UserPoolId"),
+                    Username = user.Username,
+                };
+                var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
+                context.users.Add(new users { user_id = newUser.UserAttributes.ToArray()[0].Value, profile_picture = null, cover_picture = null });
+                context.SaveChanges();
+
+                return Ok(new { message = "Registration successful." });
             }
             else {
                 return BadRequest(new { message = "Email already registered." });
@@ -233,3 +249,5 @@ public class AuthController : ControllerBase
         }
     } 
 }
+
+
