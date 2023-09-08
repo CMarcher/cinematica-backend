@@ -25,7 +25,7 @@ jobs:
         dotnet-version: 6.0.x
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./Cinematica.API/src/Cinematica.API/Cinematica.API.csproj
       
     - name: Build
       run: dotnet build "Cinematica.API/src/Cinematica.API" --no-restore
