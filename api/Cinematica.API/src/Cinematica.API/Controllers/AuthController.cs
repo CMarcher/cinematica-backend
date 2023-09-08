@@ -5,6 +5,7 @@ using Cinematica.API.Models.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
 using System.Net;
+using WebApi.Helpers;
 
 namespace Cinematica.API.Controllers;
 
@@ -12,19 +13,22 @@ namespace Cinematica.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration APP_CONFIG;
+    private DataContext context;
+    
     private AmazonCognitoIdentityProviderClient cognitoIdClient;
 
-    public AuthController(IConfiguration config) {
+    public AuthController(IConfiguration config, DataContext context) {
         APP_CONFIG = config.GetSection("AWS");
+        this.context = context;
 
         cognitoIdClient = new AmazonCognitoIdentityProviderClient
         (
-            APP_CONFIG.GetValue<string>("AccessKeyId"), 
-            APP_CONFIG.GetValue<string>("AccessSecretKey"), 
-            RegionEndpoint.GetBySystemName(APP_CONFIG.GetValue<string>("Region"))
+            APP_CONFIG["AccessKeyId"], 
+            APP_CONFIG["AccessSecretKey"], 
+            RegionEndpoint.GetBySystemName(APP_CONFIG["Region"])
         );
     }
-    
+
     // POST api/auth/register
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest model)
@@ -32,15 +36,19 @@ public class AuthController : ControllerBase
         try {      
             var user = await FindUserByEmailAddress(model.Email);
             if(user == null) {
+                // create and send registration request to cognito
                 var regRequest = new SignUpRequest
                 {
-                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                    ClientId = APP_CONFIG["AppClientId"],
                     Username = model.Username,
                     Password = model.Password,
                     UserAttributes = { new AttributeType { Name = "email", Value = model.Email } }
                 };
                 var ret = await cognitoIdClient.SignUpAsync(regRequest);
-                return Ok(new { message = "Registration successful." });;
+
+
+
+                return Ok(new { message = "Registration successful." });
             }
             else {
                 return BadRequest(new { message = "Email already registered." });
@@ -63,8 +71,8 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var cognitoUserPool = new CognitoUserPool(APP_CONFIG.GetValue<string>("UserPoolId"), APP_CONFIG.GetValue<string>("AppClientId"), cognitoIdClient);
-            var cognitoUser = new CognitoUser(model.Username, APP_CONFIG.GetValue<string>("AppClientId"), cognitoUserPool, cognitoIdClient);
+            var cognitoUserPool = new CognitoUserPool(APP_CONFIG["UserPoolId"], APP_CONFIG["AppClientId"], cognitoIdClient);
+            var cognitoUser = new CognitoUser(model.Username, APP_CONFIG["AppClientId"], cognitoUserPool, cognitoIdClient);
         
             InitiateSrpAuthRequest authRequest = new InitiateSrpAuthRequest()
             {
@@ -100,12 +108,23 @@ public class AuthController : ControllerBase
         try {
             var regRequest = new ConfirmSignUpRequest
                 {
-                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                    ClientId = APP_CONFIG["AppClientId"],
                     Username = model.Username,
                     ConfirmationCode = model.ConfirmationCode
                 };
 
             var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
+
+            // add user id to the database
+            var getRequest = new AdminGetUserRequest()
+            {
+                UserPoolId = APP_CONFIG["UserPoolId"],
+                Username = model.Username,
+            };
+            var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
+            context.User.Add(new User { user_id = newUser.UserAttributes.ToArray()[0].Value, profile_picture = null, cover_picture = null });
+            context.SaveChanges();
+
             return Ok(new { message = "Verification successful." });
         }
         catch(CodeMismatchException) {
@@ -134,7 +153,7 @@ public class AuthController : ControllerBase
                 (
                     new ResendConfirmationCodeRequest 
                     { 
-                        ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                        ClientId = APP_CONFIG["AppClientId"],
                         Username = user.Username
                     }
                 ); 
@@ -162,7 +181,7 @@ public class AuthController : ControllerBase
                 (
                     new ForgotPasswordRequest 
                     { 
-                        ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                        ClientId = APP_CONFIG["AppClientId"],
                         Username = user.Username
                     }
                 ); 
@@ -194,7 +213,7 @@ public class AuthController : ControllerBase
             if(user != null) {
                 var response = await cognitoIdClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
                 {
-                    ClientId = APP_CONFIG.GetValue<string>("AppClientId"),
+                    ClientId = APP_CONFIG["AppClientId"],
                     Username = user.Username,
                     Password = model.Password,
                     ConfirmationCode = model.ConfirmationCode
@@ -216,7 +235,7 @@ public class AuthController : ControllerBase
     {
         ListUsersRequest listUsersRequest = new ListUsersRequest
         {
-            UserPoolId = APP_CONFIG.GetValue<string>("UserPoolId"),
+            UserPoolId = APP_CONFIG["UserPoolId"],
             Filter = "email = \"" + emailAddress + "\""
         }; 
         
@@ -233,3 +252,5 @@ public class AuthController : ControllerBase
         }
     } 
 }
+
+

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.OpenApi.Models;
 using TMDbLib.Client;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using WebApi.Helpers;
 
 namespace Cinematica.API;
 
@@ -20,11 +21,13 @@ public class Startup
     {
 
         string TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
-
         TMDbClient client = new TMDbClient(TMDbApiKey);
+
         services.AddSingleton(client);
 
         services.AddControllers();
+
+        services.AddDbContext<DataContext>();
 
         services.AddCors(options => {
             options.AddPolicy("AllowReactFrontend",
