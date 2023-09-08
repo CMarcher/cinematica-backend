@@ -90,4 +90,64 @@ resource "aws_cloudwatch_log_group" "cinematica_api_lambda_log_group" {
     name = "/aws/lambda/${var.cinematica_lambda_function_name}"
     retention_in_days = 14
 }
+
+# # # # # # # # #
+#  API Gateway  #
+# # # # # # # # #
+
+resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
+    name = "cinematica-api-gateway"
+}
+
+resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
+    domain_name = var.api_domain_name
+    certificate_arn = aws_acm_certificate.api_certificate.arn
+}
+
+resource "aws_api_gateway_resource" "cinematica_api_gateway_resource" {
+    name = "proxy"
+    parent_id = aws_api_gateway_rest_api.cinematica_api_gateway.root_resource_id
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+    path_part = "{proxy+}"
+}
+
+resource "aws_api_gateway_method" "cinematica_api_gateway_proxy_method" {
+    authorization = "NONE"
+    http_method   = "ANY"
+    resource_id   = aws_api_gateway_resource.cinematica_api_gateway_resource.id
+    rest_api_id   = aws_api_gateway_rest_api.cinematica_api_gateway.id
+}
+
+resource "aws_api_gateway_integration" "cinematica_api_gateway_integration" {
+    http_method = aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method
+    resource_id = aws_api_gateway_resource.cinematica_api_gateway_resource.id
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+    type        = "AWS_PROXY"
+    integration_http_method = "POST"
+    uri = aws_lambda_function.cinematica_api_lambda.invoke_arn
+}
+
+resource "aws_lambda_permission" "api_gateway_lambda_permission" {
+    statement_id  = "AllowExecutionFromAPIGateway"
+    action        = "lambda:InvokeFunction"
+    function_name = aws_lambda_function.cinematica_api_lambda.function_name
+    principal     = "apigateway.amazonaws.com"
+    source_arn = "arn:aws:execute-api:${var.region}:${local.account_id}:${aws_api_gateway_rest_api.cinematica_api_gateway.id}/*/${aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method}${aws_api_gateway_resource.cinematica_api_gateway_resource.path}"
+}
+
+# # # # #
+#  ACM  #
+# # # # #
+
+resource "aws_acm_certificate" "api_certificate" {
+    domain_name = var.api_domain_name
+    validation_method = "DNS"
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_acm_certificate_validation" "validator" {
+    certificate_arn = aws_acm_certificate.api_certificate.arn
 }
