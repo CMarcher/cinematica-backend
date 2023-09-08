@@ -15,5 +15,5 @@ public class DataContext : DbContext
         // connect to postgres with connection string from app settings
         options.UseNpgsql(Configuration.GetConnectionString("cinematica-local"));
     }
-    public DbSet<users> users { get; set; }
+    public DbSet<User> User { get; set; }
 }

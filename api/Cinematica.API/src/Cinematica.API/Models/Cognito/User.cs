@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-public class users {
+[Table("users")]
+public class User {
     [Key]
     public string user_id { get; set; }
     public string? profile_picture { get; set; }
