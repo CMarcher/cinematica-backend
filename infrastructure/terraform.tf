@@ -55,8 +55,7 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
 
 resource "aws_iam_role" "cinematica_api_lambda_role" {
     name = "cinematica-api-lambda-role"
-    assume_role_policy = data.aws_iam_policy_document.lambda_assume_role
-
+    assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
 data "aws_iam_policy_document" "lambda_assume_role" {
