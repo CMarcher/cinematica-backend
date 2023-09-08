@@ -22,6 +22,7 @@
 		<PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="8.1.0" />
 		<PackageReference Include="AWSSDK.S3" Version="3.7.203.1" />
 		<PackageReference Include="Microsoft.AspNetCore.cors" Version="2.2.0" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 		<PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
 		<PackageReference Include="TMDbLib" Version="2.0.0" />

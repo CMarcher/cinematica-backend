@@ -5,7 +5,7 @@ using Cinematica.API.Models.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
 using System.Net;
-using WebApi.Helpers;
+using Cinematica.API.Data;
 
 namespace Cinematica.API.Controllers;
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.OpenApi.Models;
 using TMDbLib.Client;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using WebApi.Helpers;
+using Cinematica.API.Data;
 
 namespace Cinematica.API;
 
@@ -38,7 +38,7 @@ public class Startup
 
         services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinamatica API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinematica API", Version = "v1" });
             });
     }
 
