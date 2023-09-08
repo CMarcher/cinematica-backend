@@ -1,11 +1,10 @@
-﻿using System.Text.Json;
+﻿using Cinematica.API.Models.Movie;
 using Microsoft.AspNetCore.Mvc;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Movie = Cinematica.API.Models.Movie.Movie;
 
 namespace Cinematica.API.Controllers
 {
@@ -14,31 +13,41 @@ namespace Cinematica.API.Controllers
     public class MoviesController : ControllerBase
     {
         private readonly TMDbClient _tmdbClient;
-        private readonly JsonSerializerOptions options;
 
         public MoviesController(TMDbClient tmdbClient)
         {
             _tmdbClient = tmdbClient;
-            options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
         }
 
         // GET: api/<MoviesController>/{searchTerm}
         [HttpGet("search/{searchTerm}")]
-        public string Get(string searchTerm)
+        public IActionResult Get(string searchTerm)
         {
             SearchContainer<SearchMovie> results = _tmdbClient.SearchMovieAsync(searchTerm).Result;
-            return JsonSerializer.Serialize(results, options);
+            if (results == null)
+            {
+                return NotFound(); // Return a 404 Not Found response
+            }
+            //Pair down results into SimpleMovie type and return.
+            return Ok(SimpleMovie.MapToSimpleMovies(results));
         }
 
         // GET api/<MoviesController>/{id}
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult Get(int id)
         {
-            Movie movie = _tmdbClient.GetMovieAsync(id).Result;
-            return JsonSerializer.Serialize(movie, options);
+            //Check if already in database, if it is then return data from cache and database, else fetch from TMDb
+
+            //Fetch from TMDb
+            TMDbLib.Objects.Movies.Movie movie = _tmdbClient.GetMovieAsync(id, MovieMethods.Credits).Result;
+            if (movie == null)
+            {
+                return NotFound(); // Return a 404 Not Found response
+            }
+            // Add to database and Images to Cache
+
+            // Return Movie
+            return Ok(Movie.MapToMovie(movie));
         }
     }
 }
