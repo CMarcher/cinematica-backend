@@ -75,7 +75,7 @@ resource "aws_iam_policy" "cinematica_api_lambda_logging_access" {
     name = "cinematica-api-lambda-logging-access"
     path = "/"
     description = "IAM policy that allows the Cinematica API lambda function to its corresponding log group"
-    policy = data.aws_iam_policy_document.cinematica_api_lambda_log_policy_document
+    policy = data.aws_iam_policy_document.cinematica_api_lambda_log_policy_document.json
 }
 
 data "aws_iam_policy_document" "cinematica_api_lambda_log_policy_document" {
