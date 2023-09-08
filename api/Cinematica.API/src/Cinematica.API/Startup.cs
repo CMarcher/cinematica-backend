@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.OpenApi.Models;
 using TMDbLib.Client;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using WebApi.Helpers;
+using Cinematica.API.Data;
 
 namespace Cinematica.API;
 

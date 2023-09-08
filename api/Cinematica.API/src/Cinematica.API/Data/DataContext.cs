@@ -1,4 +1,4 @@
-namespace WebApi.Helpers;
+namespace Cinematica.API.Data;
 using Microsoft.EntityFrameworkCore;
 
 public class DataContext : DbContext
