@@ -40,7 +40,7 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
     function_name = var.cinematica_lambda_function_name
     handler = "Cinematica.API::Cinematica.API.LambdaEntryPoint::FunctionHandlerAsync"
     runtime = "dotnet6"
-    s3_bucket = aws_s3_bucket.api_lambda_bucket
+    s3_bucket = aws_s3_bucket.api_lambda_bucket.bucket
     s3_key = "Cinematica.API"
     role = aws_iam_role.cinematica_api_lambda_role.arn
     memory_size = 1024
