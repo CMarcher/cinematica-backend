@@ -11,6 +11,11 @@ provider "aws" {
     region = "ap-southeast-2"
 }
 
+provider "aws" {
+    alias = "us_east"
+    region = "us-east-1"
+}
+
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -153,12 +158,9 @@ resource "aws_lambda_permission" "api_gateway_lambda_permission" {
 resource "aws_acm_certificate" "api_certificate" {
     domain_name = var.api_domain_name
     validation_method = "DNS"
+    provider = aws.us_east
 
     lifecycle {
         create_before_destroy = true
     }
-}
-
-resource "aws_acm_certificate_validation" "validator" {
-    certificate_arn = aws_acm_certificate.api_certificate.arn
 }
