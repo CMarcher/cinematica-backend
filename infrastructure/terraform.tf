@@ -11,6 +11,19 @@ provider "aws" {
     region = "ap-southeast-2"
 }
 
+data "aws_caller_identity" "current" {}
+
+locals {
+    account_id = data.aws_caller_identity.current.account_id
+}
+
+variable "region" { default = "ap-southeast-2" }
+variable "api_domain_name" { default = "api.cinematica.social" }
+
+# # # # # #
+#   S3    #
+# # # # # #
+
 resource "aws_s3_bucket" "api_lambda_bucket" {
     bucket = "cinematica-api-lambda-source"
 }
