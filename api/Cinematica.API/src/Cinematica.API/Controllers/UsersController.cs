@@ -19,9 +19,11 @@ namespace Cinematica.API.Controllers
         [HttpGet("{id}")]
         public string Get(int id)
         {
+            // Get User details from database
+
             return "value";
         }
-
+        
         // POST api/<UsersController>
         [HttpPost]
         public void Post([FromBody] string value)

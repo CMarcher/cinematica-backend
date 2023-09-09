@@ -36,7 +36,7 @@ namespace Cinematica.API.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            //Check if already in database, if it is then return data from cache and database, else fetch from TMDb
+            //TODO: Check if already in database, if it is then return data from cache and database, else fetch from TMDb
 
             //Fetch from TMDb
             TMDbLib.Objects.Movies.Movie movie = _tmdbClient.GetMovieAsync(id, MovieMethods.Credits).Result;
@@ -44,7 +44,7 @@ namespace Cinematica.API.Controllers
             {
                 return NotFound(); // Return a 404 Not Found response
             }
-            // Add to database and Images to Cache
+            // TODO: Add to database and Images to Cache
 
             // Return Movie
             return Ok(Movie.MapToMovie(movie));

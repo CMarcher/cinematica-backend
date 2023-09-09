@@ -33,6 +33,7 @@ public class Movie : SimpleMovie
             Studios = tmdbMovie.ProductionCompanies.Select(p => p.Name).ToList(),
             Cast = tmdbMovie.Credits.Cast.Select(c => new CastMember
                 {
+                    Id = c.Id,
                     Name = c.Name,
                     Role = c.Character
                 }).ToList(),
