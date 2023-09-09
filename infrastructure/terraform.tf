@@ -138,6 +138,12 @@ resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
     security_policy = "TLS_1_2"
 }
 
+resource "aws_api_gateway_base_path_mapping" "api_mapping" {
+    api_id      = aws_api_gateway_rest_api.cinematica_api_gateway.id
+    domain_name = aws_api_gateway_domain_name.cinematica_api_domain.domain_name
+    stage_name = aws_api_gateway_stage.cinematica_production.stage_name
+}
+
 resource "aws_api_gateway_resource" "cinematica_api_gateway_resource" {
     provider = aws.us_east
     parent_id = aws_api_gateway_rest_api.cinematica_api_gateway.root_resource_id
