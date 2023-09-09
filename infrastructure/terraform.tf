@@ -4,6 +4,11 @@ terraform {
             source = "hashicorp/aws"
             version = "5.13.1"
         }
+
+        cloudflare = {
+            source = "cloudflare/cloudflare"
+            version = "4.14.0"
+        }
     }
 }
 
@@ -16,6 +21,7 @@ provider "aws" {
     region = "us-east-1"
 }
 
+provider "cloudflare" { }
 data "aws_caller_identity" "current" {}
 
 locals {
