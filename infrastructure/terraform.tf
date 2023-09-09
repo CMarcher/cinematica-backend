@@ -134,6 +134,7 @@ resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
 resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
     domain_name = var.api_domain_name
     certificate_arn = aws_acm_certificate.api_certificate.arn
+    security_policy = "TLS_1_2"
 }
 
 resource "aws_api_gateway_resource" "cinematica_api_gateway_resource" {
