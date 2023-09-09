@@ -103,7 +103,7 @@ data "aws_iam_policy_document" "cinematica_api_lambda_log_policy_document" {
             "logs:GetLogEvents"
         ]
 
-        resources = ["arn:aws:logs:ap-southeast-2:${local.account_id}:log-group:${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.name}/*"]
+        resources = ["arn:aws:logs:ap-southeast-2:${local.account_id}:log-group:${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.name}:*"]
     }
 }
 
@@ -225,7 +225,7 @@ resource "cloudflare_record" "api_cinematica_social" {
     type    = "CNAME"
     value   = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_domain_name
     zone_id = var.zone_id
-    proxied = true
+    proxied = false
 }
 
 resource "cloudflare_record" "validation" {
