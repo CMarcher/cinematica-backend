@@ -22,6 +22,8 @@ provider "aws" {
 }
 
 provider "cloudflare" { }
+
+data "aws_region" "api_gateway_region" { provider = "aws.us_east" }
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -30,6 +32,7 @@ locals {
 
 variable "region" { default = "ap-southeast-2" }
 variable "api_domain_name" { default = "api.cinematica.social" }
+variable "zone_id" { }
 
 # # # # # #
 #   S3    #
