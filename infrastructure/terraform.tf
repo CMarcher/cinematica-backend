@@ -4,6 +4,11 @@ terraform {
             source = "hashicorp/aws"
             version = "5.13.1"
         }
+
+        cloudflare = {
+            source = "cloudflare/cloudflare"
+            version = "4.14.0"
+        }
     }
 }
 
@@ -16,6 +21,9 @@ provider "aws" {
     region = "us-east-1"
 }
 
+provider "cloudflare" { }
+
+data "aws_region" "api_gateway_region" { provider = "aws.us_east" }
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -24,6 +32,7 @@ locals {
 
 variable "region" { default = "ap-southeast-2" }
 variable "api_domain_name" { default = "api.cinematica.social" }
+variable "zone_id" { }
 
 # # # # # #
 #   S3    #
@@ -114,11 +123,18 @@ resource "aws_cloudwatch_log_group" "cinematica_api_lambda_log_group" {
 
 resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
     name = "cinematica-api-gateway"
+    provider = aws.us_east
+    disable_execute_api_endpoint = true
+
+    endpoint_configuration {
+        types = ["EDGE"]
+    }
 }
 
 resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
     domain_name = var.api_domain_name
     certificate_arn = aws_acm_certificate.api_certificate.arn
+    security_policy = "TLS_1_2"
 }
 
 resource "aws_api_gateway_resource" "cinematica_api_gateway_resource" {
@@ -148,7 +164,21 @@ resource "aws_lambda_permission" "api_gateway_lambda_permission" {
     action        = "lambda:InvokeFunction"
     function_name = aws_lambda_function.cinematica_api_lambda.function_name
     principal     = "apigateway.amazonaws.com"
-    source_arn = "arn:aws:execute-api:${var.region}:${local.account_id}:${aws_api_gateway_rest_api.cinematica_api_gateway.id}/*/${aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method}${aws_api_gateway_resource.cinematica_api_gateway_resource.path}"
+    source_arn = "arn:aws:execute-api:${data.aws_region.api_gateway_region.name}:${local.account_id}:${aws_api_gateway_rest_api.cinematica_api_gateway.id}/*/${aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method}${aws_api_gateway_resource.cinematica_api_gateway_resource.path}"
+}
+
+resource "aws_api_gateway_deployment" "cinematica_deployment" {
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_api_gateway_stage" "cinematica_production" {
+    deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+    stage_name = "production"
 }
 
 # # # # #
@@ -163,4 +193,32 @@ resource "aws_acm_certificate" "api_certificate" {
     lifecycle {
         create_before_destroy = true
     }
+}
+
+# # # # # # # #
+#  CloudFlare #
+# # # # # # # #
+
+resource "cloudflare_record" "api_cinematica_social" {
+    name    = var.api_domain_name
+    type    = "CNAME"
+    value   = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_domain_name
+    zone_id = var.zone_id
+    proxied = true
+}
+
+resource "cloudflare_record" "validation" {
+    for_each = {
+        for dvo in aws_acm_certificate.api_certificate.domain_validation_options : dvo.domain_name => {
+            name   = dvo.resource_record_name
+            record = dvo.resource_record_value
+            type   = dvo.resource_record_type
+        }
+    }
+
+    name    = trimsuffix(each.value.name, ".")
+    type    = each.value.type
+    value   = trimsuffix(each.value.record, ".")
+    zone_id = var.zone_id
+    proxied = false
 }
