@@ -23,7 +23,7 @@ provider "aws" {
 
 provider "cloudflare" { }
 
-data "aws_region" "api_gateway_region" { provider = "aws.us_east" }
+data "aws_region" "api_gateway_region" { provider = aws.us_east }
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -132,18 +132,21 @@ resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
 }
 
 resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
+    provider = aws.us_east
     domain_name = var.api_domain_name
     certificate_arn = aws_acm_certificate.api_certificate.arn
     security_policy = "TLS_1_2"
 }
 
 resource "aws_api_gateway_resource" "cinematica_api_gateway_resource" {
+    provider = aws.us_east
     parent_id = aws_api_gateway_rest_api.cinematica_api_gateway.root_resource_id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     path_part = "{proxy+}"
 }
 
 resource "aws_api_gateway_method" "cinematica_api_gateway_proxy_method" {
+    provider = aws.us_east
     authorization = "NONE"
     http_method   = "ANY"
     resource_id   = aws_api_gateway_resource.cinematica_api_gateway_resource.id
@@ -151,6 +154,7 @@ resource "aws_api_gateway_method" "cinematica_api_gateway_proxy_method" {
 }
 
 resource "aws_api_gateway_integration" "cinematica_api_gateway_integration" {
+    provider = aws.us_east
     http_method = aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method
     resource_id = aws_api_gateway_resource.cinematica_api_gateway_resource.id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
@@ -168,6 +172,7 @@ resource "aws_lambda_permission" "api_gateway_lambda_permission" {
 }
 
 resource "aws_api_gateway_deployment" "cinematica_deployment" {
+    provider = aws.us_east
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
 
     lifecycle {
@@ -176,6 +181,7 @@ resource "aws_api_gateway_deployment" "cinematica_deployment" {
 }
 
 resource "aws_api_gateway_stage" "cinematica_production" {
+    provider = aws.us_east
     deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     stage_name = "production"
