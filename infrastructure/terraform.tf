@@ -165,6 +165,19 @@ resource "aws_lambda_permission" "api_gateway_lambda_permission" {
     principal     = "apigateway.amazonaws.com"
     source_arn = "arn:aws:execute-api:${data.aws_region.api_gateway_region.name}:${local.account_id}:${aws_api_gateway_rest_api.cinematica_api_gateway.id}/*/${aws_api_gateway_method.cinematica_api_gateway_proxy_method.http_method}${aws_api_gateway_resource.cinematica_api_gateway_resource.path}"
 }
+
+resource "aws_api_gateway_deployment" "cinematica_deployment" {
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_api_gateway_stage" "cinematica_production" {
+    deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
+    rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
+    stage_name = "production"
 }
 
 # # # # #
