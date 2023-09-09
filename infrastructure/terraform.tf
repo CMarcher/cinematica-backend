@@ -23,7 +23,7 @@ provider "aws" {
 
 provider "cloudflare" { }
 
-data "aws_region" "api_gateway_region" { provider = "aws.us_east" }
+data "aws_region" "api_gateway_region" { provider = aws.us_east }
 data "aws_caller_identity" "current" {}
 
 locals {
