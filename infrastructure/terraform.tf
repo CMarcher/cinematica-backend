@@ -175,6 +175,14 @@ resource "aws_api_gateway_deployment" "cinematica_deployment" {
     provider = aws.us_east
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
 
+    triggers = {
+        redeployment = sha1(jsonencode([
+            aws_api_gateway_resource.cinematica_api_gateway_resource.id,
+            aws_api_gateway_method.cinematica_api_gateway_proxy_method.id,
+            aws_api_gateway_integration.cinematica_api_gateway_integration.id
+        ]))
+    }
+
     lifecycle {
         create_before_destroy = true
     }
