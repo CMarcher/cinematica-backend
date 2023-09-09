@@ -123,6 +123,12 @@ resource "aws_cloudwatch_log_group" "cinematica_api_lambda_log_group" {
 
 resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
     name = "cinematica-api-gateway"
+    provider = aws.us_east
+    disable_execute_api_endpoint = true
+
+    endpoint_configuration {
+        types = ["EDGE"]
+    }
 }
 
 resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
