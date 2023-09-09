@@ -225,7 +225,7 @@ resource "cloudflare_record" "api_cinematica_social" {
     type    = "CNAME"
     value   = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_domain_name
     zone_id = var.zone_id
-    proxied = true
+    proxied = false
 }
 
 resource "cloudflare_record" "validation" {
