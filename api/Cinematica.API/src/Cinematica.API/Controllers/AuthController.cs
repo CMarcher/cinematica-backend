@@ -98,7 +98,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Incorrect username or password." });
         }
         catch(Exception e) {
-            return BadRequest(new { message = e.ToString().Split("\r\n")[0] });
+            return BadRequest(new { message = e.GetType().ToString() });
         }
     }
 
@@ -138,7 +138,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "User doesn't exist." });
         }
         catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+            return BadRequest(new { message = e.ToString() });
         }
     }
 
