@@ -11,7 +11,7 @@ public class DisplayMovie : SimpleMovie
     public string? Overview { get; set; }
     public string? Language { get; set; }
     public List<string>? Studios { get; set; }
-    public List<CastMember>? Cast { get; set; }
+    public List<DisplayCastMember>? Cast { get; set; }
 
     // Function that takes a TMDbLib.Objects.Movies.DisplayMovie object as a parameter and returns a DisplayMovie object
     public static DisplayMovie MapToMovie(TMDbLib.Objects.Movies.Movie tmdbMovie)
@@ -31,7 +31,7 @@ public class DisplayMovie : SimpleMovie
             Overview = tmdbMovie.Overview,
             Language = tmdbMovie.OriginalLanguage,
             Studios = tmdbMovie.ProductionCompanies.Select(p => p.Name).ToList(),
-            Cast = tmdbMovie.Credits.Cast.Select(c => new CastMember
+            Cast = tmdbMovie.Credits.Cast.Select(c => new DisplayCastMember
                 {
                     Id = c.Id,
                     Name = c.Name,

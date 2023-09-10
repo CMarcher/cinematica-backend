@@ -1,0 +1,91 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "cinematica-localContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": true,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models\\Database",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Cinematica.API",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "public.cast_members",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.genres",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.likes",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.movie_genres",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.movie_selections",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.movie_studios",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.movies",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.person",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.posts",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.studios",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.user_followers",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.user_movies",
+         "ObjectType": 0
+      },
+      {
+         "Name": "public.users",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "cinematica-local",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": true,
+   "UseManyToManyEntity": true,
+   "UseNoDefaultConstructor": true,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false
+}

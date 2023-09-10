@@ -2,7 +2,7 @@
 
 namespace Cinematica.API.Models.Display;
 
-public class CastMember
+public class DisplayCastMember
 {
     [Required]
     public int Id { get; set; }

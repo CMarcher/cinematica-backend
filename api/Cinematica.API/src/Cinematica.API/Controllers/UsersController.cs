@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Cinematica.API.Data;
+using Cinematica.API.Models;
+using Cinematica.API.Models.Database;
+using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,20 +11,35 @@ namespace Cinematica.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+
+        private readonly DataContext _context;
+
+        public UsersController(DataContext context)
+        {
+            _context = context;
+        }
+
         // GET: api/<UsersController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult GetAllUsers()
         {
-            return new string[] { "value1", "value2" };
+            return Ok(_context.Users.ToList());
         }
 
         // GET api/<UsersController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult GetUser(int id)
         {
             // Get User details from database
-
-            return "value";
+            var user = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
+            if (user == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(user);
+            }
         }
         
         // POST api/<UsersController>

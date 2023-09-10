@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using TMDbLib.Client;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Cinematica.API.Data;
+using Cinematica.API.Models;
 
 namespace Cinematica.API;
 
@@ -21,8 +22,8 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
 
-        string TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
-        TMDbClient client = new TMDbClient(TMDbApiKey);
+        var TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
+        TMDbClient client = new (TMDbApiKey);
 
         services.AddSingleton(client);
 

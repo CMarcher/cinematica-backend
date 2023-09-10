@@ -6,6 +6,7 @@ using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
 using System.Net;
 using Cinematica.API.Data;
+using Cinematica.API.Models.Database;
 
 namespace Cinematica.API.Controllers;
 
@@ -122,7 +123,7 @@ public class AuthController : ControllerBase
                 Username = model.Username,
             };
             var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
-            context.User.Add(new User { user_id = newUser.UserAttributes.ToArray()[0].Value, profile_picture = null, cover_picture = null });
+            context.Users.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null });
             context.SaveChanges();
 
             return Ok(new { message = "Verification successful." });
