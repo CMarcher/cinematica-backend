@@ -3,7 +3,7 @@ using System.Text.Json;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Search;
 
-namespace Cinematica.API.Models.Movie;
+namespace Cinematica.API.Models.Display;
 
 public class SimpleMovie
 {

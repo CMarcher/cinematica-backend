@@ -1,6 +1,6 @@
-﻿namespace Cinematica.API.Models.Movie;
+﻿namespace Cinematica.API.Models.Display;
 
-public class Movie : SimpleMovie
+public class DisplayMovie : SimpleMovie
 {
     public string? Poster { get; set; }
     public string? Banner { get; set; }
@@ -13,11 +13,11 @@ public class Movie : SimpleMovie
     public List<string>? Studios { get; set; }
     public List<CastMember>? Cast { get; set; }
 
-    // Function that takes a TMDbLib.Objects.Movies.Movie object as a parameter and returns a Movie object
-    public static Movie MapToMovie(TMDbLib.Objects.Movies.Movie tmdbMovie)
+    // Function that takes a TMDbLib.Objects.Movies.DisplayMovie object as a parameter and returns a DisplayMovie object
+    public static DisplayMovie MapToMovie(TMDbLib.Objects.Movies.Movie tmdbMovie)
     {
-        // Create a new Movie object and assign the properties from the tmdbMovie object
-        Movie movie = new()
+        // Create a new DisplayMovie object and assign the properties from the tmdbMovie object
+        DisplayMovie displayMovie = new()
         {
             Id = tmdbMovie.Id,
             Title = tmdbMovie.Title,
@@ -39,6 +39,6 @@ public class Movie : SimpleMovie
                 }).ToList(),
         };
 
-        return movie;
+        return displayMovie;
     }
 }

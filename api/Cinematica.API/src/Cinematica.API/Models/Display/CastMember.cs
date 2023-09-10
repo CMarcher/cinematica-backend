@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Cinematica.API.Models.Movie;
+namespace Cinematica.API.Models.Display;
 
 public class CastMember
 {

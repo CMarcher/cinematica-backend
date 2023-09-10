@@ -1,10 +1,9 @@
-﻿using Cinematica.API.Models.Movie;
+﻿using Cinematica.API.Models.Display;
 using Microsoft.AspNetCore.Mvc;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
-using Movie = Cinematica.API.Models.Movie.Movie;
 
 namespace Cinematica.API.Controllers
 {
@@ -46,8 +45,8 @@ namespace Cinematica.API.Controllers
             }
             // TODO: Add to database and Images to Cache
 
-            // Return Movie
-            return Ok(Movie.MapToMovie(movie));
+            // Return DisplayMovie
+            return Ok(DisplayMovie.MapToMovie(movie));
         }
     }
 }
