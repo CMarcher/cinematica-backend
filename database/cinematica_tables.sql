@@ -58,7 +58,7 @@ CREATE TABLE posts
 	user_id varchar(255) not null,
 	created_at timestamptz not null,
 	body text not null,
-	img varchar(255),
+	image varchar(255),
 	PRIMARY KEY (post_id),
 	FOREIGN KEY (user_id) references users (user_id)
 );
