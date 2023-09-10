@@ -26,6 +26,7 @@ public partial class DataContext : DbContext
     public virtual DbSet<DBMovie> Movies { get; set; }
     public virtual DbSet<Person> Persons { get; set; }
     public virtual DbSet<Post> Posts { get; set; }
+    public virtual DbSet<Reply> Replies { get; set; }
     public virtual DbSet<Studio> Studios { get; set; }
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<UserFollower> UserFollowers { get; set; }
@@ -187,6 +188,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.PersonName)
                 .HasMaxLength(255)
                 .HasColumnName("person_name");
+
+            entity.HasKey(e => e.PersonId)
+                .HasName("person_pkey");
         });
 
         modelBuilder.Entity<Post>(entity =>
@@ -201,25 +205,63 @@ public partial class DataContext : DbContext
                 .IsRequired()
                 .HasColumnName("body");
 
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.Image)
+                .HasColumnName("image");
 
-            entity.Property(e => e.ParentId).HasColumnName("parent_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
 
             entity.Property(e => e.UserId)
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("user_id");
 
-            entity.HasOne(d => d.Parent)
-                .WithMany(p => p.InverseParent)
-                .HasForeignKey(d => d.ParentId)
-                .HasConstraintName("posts_parent_id_fkey");
-
             entity.HasOne(d => d.User)
                 .WithMany(p => p.Posts)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("posts_user_id_fkey");
+
+            entity.HasKey(e => e.PostId)
+                .HasName("posts_pkey");
+        });
+
+        modelBuilder.Entity<Reply>(entity =>
+        {
+            entity.ToTable("replies");
+
+            entity.Property(e => e.ReplyId)
+                .ValueGeneratedNever()
+                .HasColumnName("reply_id");
+
+            entity.Property(e => e.PostId)
+                .ValueGeneratedNever()
+                .HasColumnName("post_id");
+
+            entity.Property(e => e.Body)
+                .IsRequired()
+                .HasColumnName("body");
+
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("user_id");
+
+            entity.HasOne(d => d.Post)
+                .WithMany()
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("replies_parent_id_fkeys");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("replies_user_id_fkey");
+
+            entity.HasKey(e => e.ReplyId)
+                .HasName("replies_pkey");
         });
 
         modelBuilder.Entity<Studio>(entity =>
@@ -233,6 +275,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.StudioName)
                 .HasMaxLength(255)
                 .HasColumnName("studio_name");
+
+            entity.HasKey(e => e.StudioId)
+                .HasName("studio_pkey");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -250,6 +295,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.ProfilePicture)
                 .HasMaxLength(255)
                 .HasColumnName("profile_picture");
+
+            entity.HasKey(e => e.UserId)
+                .HasName("user_pkey");
         });
 
         modelBuilder.Entity<UserFollower>(entity =>

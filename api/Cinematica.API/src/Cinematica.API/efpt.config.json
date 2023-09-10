@@ -14,60 +14,64 @@
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
    "T4TemplatePath": null,
-   "Tables": [
-      {
-         "Name": "public.cast_members",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.genres",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.likes",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.movie_genres",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.movie_selections",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.movie_studios",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.movies",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.person",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.posts",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.studios",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.user_followers",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.user_movies",
-         "ObjectType": 0
-      },
-      {
-         "Name": "public.users",
-         "ObjectType": 0
-      }
-   ],
+  "Tables": [
+    {
+      "Name": "public.cast_members",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.genres",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.likes",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.movie_genres",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.movie_selections",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.movie_studios",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.movies",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.person",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.posts",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.replies",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.studios",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.user_followers",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.user_movies",
+      "ObjectType": 0
+    },
+    {
+      "Name": "public.users",
+      "ObjectType": 0
+    }
+  ],
    "UiHint": "cinematica-local",
    "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,

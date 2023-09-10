@@ -28,7 +28,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/5
         [HttpGet("{id}")]
-        public IActionResult GetUser(int id)
+        public IActionResult GetUser(string id)
         {
             // Get User details from database
             var user = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
