@@ -1,5 +1,5 @@
 ﻿using Cinematica.API.Data;
-using Cinematica.API.Models;
+using Cinematica.API.Models.User;
 using Cinematica.API.Models.Database;
 using Microsoft.AspNetCore.Mvc;
 using Amazon.CognitoIdentityProvider;
@@ -64,7 +64,7 @@ namespace Cinematica.API.Controllers
 
                 });
             }
-            catch(Exception UserUserNotFoundException)
+            catch(UserNotFoundException)
             {
                 return BadRequest(new { message = "User not found." });
             }
@@ -72,37 +72,38 @@ namespace Cinematica.API.Controllers
             {
                 return BadRequest(new { message = e.ToString() });
             }
+        }
 
-            /*
-            // Get User details from database
-            var user = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
-            if (user == null)
+        // POST api/<UsersController>/follow
+        [HttpPost("follow")]
+        public IActionResult Follow([FromBody] FollowRequest model)
+        {
+            try
             {
-                return NotFound();
+                _context.Add(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId});
+                _context.SaveChanges();
+                return Ok(new { message = "Follow success." });
             }
-            else
+            catch (Exception e)
             {
-                return Ok(user);
+                return BadRequest(new { message = e.ToString() });
             }
-            */
-        }
-        
-        // POST api/<UsersController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
         }
 
-        // PUT api/<UsersController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // DELETE api/<UsersController>/unfollow
+        [HttpPost("unfollow")]
+        public IActionResult Delete([FromBody] FollowRequest model)
         {
-        }
-
-        // DELETE api/<UsersController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            try
+            {
+                _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
+                _context.SaveChanges();
+                return Ok(new { message = "Unfollow success." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
     }
 }

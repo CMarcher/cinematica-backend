@@ -302,7 +302,7 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<UserFollower>(entity =>
         {
-            entity.HasNoKey();
+            
 
             entity.ToTable("user_followers");
 
@@ -327,6 +327,8 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("user_followers_user_id_fkey");
+
+            entity.HasKey(e => new { e.UserId, e.FollowerId });
         });
 
         modelBuilder.Entity<UserMovie>(entity =>

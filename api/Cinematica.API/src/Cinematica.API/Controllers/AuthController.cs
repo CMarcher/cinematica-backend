@@ -123,7 +123,7 @@ public class AuthController : ControllerBase
                 Username = model.Username,
             };
             var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
-            context.Users.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null });
+            context.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null });
             context.SaveChanges();
 
             return Ok(new { message = "Verification successful." });
