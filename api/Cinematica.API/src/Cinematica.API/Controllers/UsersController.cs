@@ -40,18 +40,18 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // get user from cognito
                 var cognitoUser = await GetCognitoUser(id);
-                var userId = cognitoUser.Attributes.ToArray()[0].Value;
 
                 // get user from postgre database
-                var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(userId));
+                var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
 
                 // get follower and following count
-                var follower_count = _context.UserFollowers.Count(u => u.UserId == userId);
-                var following_count = _context.UserFollowers.Count(u => u.FollowerId == userId);
+                var follower_count = _context.UserFollowers.Count(u => u.UserId == id);
+                var following_count = _context.UserFollowers.Count(u => u.FollowerId == id);
 
                 return Ok(new { 
-                    id = userId,
+                    id = id,
                     username = cognitoUser.Username,
                     profile_picture = databaseUser.ProfilePicture,
                     cover_picture = databaseUser.CoverPicture,
@@ -103,22 +103,15 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/followers/id
         [HttpGet("followers/{id}")]
-        public async Task<IActionResult> GetFollowers(string id)
+        public IActionResult GetFollowers(string id)
         {
             try
             {
-                var cognitoUser = await GetCognitoUser(id);
-                var userId = cognitoUser.Attributes.ToArray()[0].Value;
-
                 var followers = _context.UserFollowers
-                                    .Where(u => u.UserId.Contains(userId))
+                                    .Where(u => u.UserId.Contains(id))
                                     .Select(p => new { p.FollowerId });
 
                 return Ok(new { followers = followers });
-            }
-            catch (UserNotFoundException)
-            {
-                return BadRequest(new { message = "User not found." });
             }
             catch (Exception e)
             {
@@ -128,22 +121,65 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/following/id
         [HttpGet("following/{id}")]
-        public async Task<IActionResult> GetFollowing(string id)
+        public IActionResult GetFollowing(string id)
         {
             try
             {
-                var cognitoUser = await GetCognitoUser(id);
-                var userId = cognitoUser.Attributes.ToArray()[0].Value;
-
                 var following = _context.UserFollowers
-                                    .Where(u => u.FollowerId.Contains(userId))
+                                    .Where(u => u.FollowerId.Contains(id))
                                     .Select(p => new { p.UserId });
 
                 return Ok(new { following = following });
             }
-            catch (UserNotFoundException)
+            catch (Exception e)
             {
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // POST api/<UsersController>/add-movie
+        [HttpPost("add-movie")]
+        public IActionResult AddMovie([FromBody] MovieRequest model)
+        {
+            try
+            {
+                _context.Add(new UserMovie { UserId = model.UserId, MovieId = model.MovieId });
+                _context.SaveChanges();
+                return Ok(new { message = "Movie successfully added to user." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // POST api/<UsersController>/remove-movie
+        [HttpPost("remove-movie")]
+        public IActionResult RemoveMovie([FromBody] MovieRequest model)
+        {
+            try
+            {
+                _context.Remove(new UserMovie { UserId = model.UserId, MovieId = model.MovieId });
+                _context.SaveChanges();
+                return Ok(new { message = "Successfully removed movie from user." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // GET api/<UsersController>/movies/id
+        [HttpGet("movies/{id}")]
+        public IActionResult GetUserMovies(string id)
+        {
+            try
+            {
+                var movies = _context.UserMovies
+                                    .Where(u => u.UserId.Contains(id))
+                                    .Select(p => new { p.MovieId });
+
+                return Ok(new { movies = movies });
             }
             catch (Exception e)
             {

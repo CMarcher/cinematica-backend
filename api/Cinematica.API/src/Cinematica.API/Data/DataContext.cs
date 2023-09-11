@@ -333,8 +333,6 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<UserMovie>(entity =>
         {
-            entity.HasNoKey();
-
             entity.ToTable("user_movies");
 
             entity.Property(e => e.MovieId).HasColumnName("movie_id");
@@ -349,6 +347,8 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("user_movies_user_id_fkey");
+
+            entity.HasKey(e => new { e.UserId, e.MovieId });
         });
 
         OnModelCreatingPartial(modelBuilder);
