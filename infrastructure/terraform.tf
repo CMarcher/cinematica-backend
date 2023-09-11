@@ -202,6 +202,12 @@ resource "aws_api_gateway_stage" "cinematica_production" {
     stage_name = "production"
 }
 
+
+resource "aws_cloudwatch_log_group" "cinematica_api_gateway_log_group" {
+    name = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.cinematica_api_gateway.id}/${aws_api_gateway_stage.cinematica_production.stage_name}"
+    retention_in_days = 14
+}
+
 # # # # #
 #  ACM  #
 # # # # #
