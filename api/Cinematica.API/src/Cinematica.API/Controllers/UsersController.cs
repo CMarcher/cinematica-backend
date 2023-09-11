@@ -6,6 +6,7 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
+using System.Net;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -33,20 +34,14 @@ namespace Cinematica.API.Controllers
             );
         }
 
-        // GET api/Users/username
-        [HttpGet("{username}")]
-        public async Task<IActionResult> GetUser(string username)
+        // GET api/Users/id
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(string id)
         {
             try
             {
-                // get user from cognito
-                var getRequest = new AdminGetUserRequest()
-                {
-                    UserPoolId = APP_CONFIG["UserPoolId"],
-                    Username = username,
-                };
-                var cognitoUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
-                var userId = cognitoUser.UserAttributes.ToArray()[0].Value;
+                var cognitoUser = await GetCognitoUser(id);
+                var userId = cognitoUser.Attributes.ToArray()[0].Value;
 
                 // get user from postgre database
                 var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(userId));
@@ -56,12 +51,12 @@ namespace Cinematica.API.Controllers
                 var following_count = _context.UserFollowers.Count(u => u.FollowerId == userId);
 
                 return Ok(new { 
-                    id = cognitoUser.UserAttributes.ToArray()[0].Value,
+                    id = userId,
+                    username = cognitoUser.Username,
                     profile_picture = databaseUser.ProfilePicture,
                     cover_picture = databaseUser.CoverPicture,
                     follower_count = follower_count ,
                     following_count = following_count,
-
                 });
             }
             catch(UserNotFoundException)
@@ -90,9 +85,9 @@ namespace Cinematica.API.Controllers
             }
         }
 
-        // DELETE api/<UsersController>/unfollow
+        // POST api/<UsersController>/unfollow
         [HttpPost("unfollow")]
-        public IActionResult Delete([FromBody] FollowRequest model)
+        public IActionResult Unfollow([FromBody] FollowRequest model)
         {
             try
             {
@@ -105,5 +100,78 @@ namespace Cinematica.API.Controllers
                 return BadRequest(new { message = e.ToString() });
             }
         }
+
+        // POST api/<UsersController>/followers/id
+        [HttpGet("followers/{id}")]
+        public async Task<IActionResult> GetFollowers(string id)
+        {
+            try
+            {
+                var cognitoUser = await GetCognitoUser(id);
+                var userId = cognitoUser.Attributes.ToArray()[0].Value;
+
+                var followers = _context.UserFollowers
+                                    .Where(u => u.UserId.Contains(userId))
+                                    .Select(p => new { p.FollowerId });
+
+                return Ok(new { followers = followers });
+            }
+            catch (UserNotFoundException)
+            {
+                return BadRequest(new { message = "User not found." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // POST api/<UsersController>/following/id
+        [HttpGet("following/{id}")]
+        public async Task<IActionResult> GetFollowing(string id)
+        {
+            try
+            {
+                var cognitoUser = await GetCognitoUser(id);
+                var userId = cognitoUser.Attributes.ToArray()[0].Value;
+
+                var following = _context.UserFollowers
+                                    .Where(u => u.FollowerId.Contains(userId))
+                                    .Select(p => new { p.UserId });
+
+                return Ok(new { following = following });
+            }
+            catch (UserNotFoundException)
+            {
+                return BadRequest(new { message = "User not found." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // Helper function to find a cognito user by id
+        private async Task<UserType?> GetCognitoUser(string id)
+        {
+            ListUsersRequest listUsersRequest = new ListUsersRequest
+            {
+                UserPoolId = APP_CONFIG["UserPoolId"],
+                Filter = "sub = \"" + id + "\""
+            };
+
+            var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+
+            if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
+            {
+                var users = listUsersResponse.Users;
+                return users.FirstOrDefault();
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
+
