@@ -101,7 +101,7 @@ namespace Cinematica.API.Controllers
             }
         }
 
-        // POST api/<UsersController>/followers/id
+        // GET api/<UsersController>/followers/id
         [HttpGet("followers/{id}")]
         public async Task<IActionResult> GetFollowers(string id)
         {
@@ -126,7 +126,7 @@ namespace Cinematica.API.Controllers
             }
         }
 
-        // POST api/<UsersController>/following/id
+        // GET api/<UsersController>/following/id
         [HttpGet("following/{id}")]
         public async Task<IActionResult> GetFollowing(string id)
         {
@@ -144,6 +144,40 @@ namespace Cinematica.API.Controllers
             catch (UserNotFoundException)
             {
                 return BadRequest(new { message = "User not found." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // POST api/<UsersController>/set-profile-picture
+        [HttpPost("set-profile-picture")]
+        public IActionResult SetProfilePicture([FromBody] SetPictureRequest model)
+        {
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
+                user.ProfilePicture = model.Picture;
+                _context.SaveChanges();
+                return Ok(new { message = "Profile picture successfully set." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // POST api/<UsersController>/set-cover-picture
+        [HttpPost("set-cover-picture")]
+        public IActionResult SetCoverPicture([FromBody] SetPictureRequest model)
+        {
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
+                user.CoverPicture = model.Picture;
+                _context.SaveChanges();
+                return Ok(new { message = "Cover picture successfully set." });
             }
             catch (Exception e)
             {
@@ -174,4 +208,3 @@ namespace Cinematica.API.Controllers
         }
     }
 }
-
