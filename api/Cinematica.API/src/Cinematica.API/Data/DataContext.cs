@@ -58,8 +58,6 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<Like>(entity =>
         {
-            entity.HasNoKey();
-
             entity.ToTable("likes");
 
             entity.Property(e => e.PostId).HasColumnName("post_id");
@@ -80,6 +78,8 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("likes_user_id_fkey");
+
+            entity.HasKey(e => new { e.UserId, e.PostId });
         });
 
         modelBuilder.Entity<MovieGenres>(entity =>
@@ -302,8 +302,6 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<UserFollower>(entity =>
         {
-            
-
             entity.ToTable("user_followers");
 
             entity.Property(e => e.FollowerId)

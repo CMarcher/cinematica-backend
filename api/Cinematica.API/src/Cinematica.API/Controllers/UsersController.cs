@@ -187,6 +187,60 @@ namespace Cinematica.API.Controllers
             }
         }
 
+        // GET api/<UsersController>/posts/id
+        [HttpGet("posts/{id}")]
+        public IActionResult GetUserPosts(string id)
+        {
+            try
+            {
+                var posts = _context.Posts
+                                    .Where(u => u.UserId.Contains(id))
+                                    .Select(p => new { p.PostId });
+
+                return Ok(new { posts = posts });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // GET api/<UsersController>/replies/id
+        [HttpGet("replies/{id}")]
+        public IActionResult GetUserReplies(string id)
+        {
+            try
+            {
+                var replies = _context.Replies
+                                    .Where(u => u.UserId.Contains(id))
+                                    .Select(r => new { r.ReplyId });
+
+                return Ok(new { replies = replies });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        // GET api/<UsersController>/replies/id
+        [HttpGet("likes/{id}")]
+        public IActionResult GetUserLikes(string id)
+        {
+            try
+            {
+                var replies = _context.Likes
+                                    .Where(u => u.UserId.Contains(id))
+                                    .Select(p => new { p.PostId });
+
+                return Ok(new { likes = likes });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
         // POST api/<UsersController>/set-profile-picture
         [HttpPost("set-profile-picture")]
         public IActionResult SetProfilePicture([FromBody] SetPictureRequest model)
