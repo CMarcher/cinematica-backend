@@ -43,4 +43,4 @@ api\Cinematica.API\src\Cinematica.API\.vs
 *.csproj.user
 
 .idea
-/api/Cinematica.API/src/Cinematica.API/images/movies
+*.jpg
