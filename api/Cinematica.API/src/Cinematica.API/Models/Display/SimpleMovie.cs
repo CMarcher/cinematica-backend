@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Cinematica.API.Data;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Search;
 
@@ -13,7 +14,7 @@ public class SimpleMovie
     public string? Title { get; set; }
     public string? ReleaseYear { get; set; }
 
-    public static List<SimpleMovie> MapToSimpleMovies(SearchContainer<SearchMovie> searchContainer)
+    public static List<SimpleMovie> TMDbToSimpleMovies(SearchContainer<SearchMovie> searchContainer)
     {
         var simpleMovies = searchContainer.Results
             .Where(movie => !movie.Adult)

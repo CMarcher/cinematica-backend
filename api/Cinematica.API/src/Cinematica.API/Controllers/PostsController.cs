@@ -1,5 +1,6 @@
 ﻿using Cinematica.API.Data;
 using Cinematica.API.Models.Database;
+using Cinematica.API.Models.Display;
 using Cinematica.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,24 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
 
-            return Ok(post);
+            var commentsCount = await _context.Replies.CountAsync(r => r.PostId == id);
+            var likesCount = await _context.Likes.CountAsync(l => l.PostId == id);
+
+            // Get the movies for the post
+            var movies = await _context.MovieSelections
+                .Where(m => m.PostId == id)
+                .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                .ToListAsync();
+
+            var postDetails = new PostDetails
+            {
+                Post = post,
+                CommentsCount = commentsCount,
+                LikesCount = likesCount,
+                Movies = movies
+            };
+
+            return Ok(postDetails);
         }
 
         // POST api/<PostsController>
@@ -71,7 +89,8 @@ namespace Cinematica.API.Controllers
             _context.Posts.Add(newPost);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetPost), new { id = newPost.PostId }, newPost);
+            return Ok(newPost);
+
         }
 
 
