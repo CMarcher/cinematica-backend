@@ -111,8 +111,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     default_cache_behavior {
         target_origin_id       = local.s3_origin_id
         viewer_protocol_policy = "redirect-to-https"
-        allowed_methods = ["GET"]
-        cached_methods = ["GET"]
+        allowed_methods = ["HEAD", "GET"]
+        cached_methods = ["HEAD", "GET"]
 
         forwarded_values {
             query_string = false
