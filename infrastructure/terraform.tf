@@ -124,6 +124,13 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
         compress = true
     }
+
+    restrictions {
+        geo_restriction {
+            locations = []
+            restriction_type = "none"
+        }
+    }
 }
 
 resource "aws_cloudfront_origin_access_identity" "cloudfront_s3_identity" { }
