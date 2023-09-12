@@ -200,6 +200,8 @@ resource "aws_api_gateway_stage" "cinematica_production" {
     deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     stage_name = "production"
+
+    depends_on = [aws_cloudwatch_log_group.cinematica_api_gateway_log_group]
 }
 
 resource "aws_api_gateway_account" "account" {
