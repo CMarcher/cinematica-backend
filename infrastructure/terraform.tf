@@ -42,6 +42,27 @@ resource "aws_s3_bucket" "api_lambda_bucket" {
     bucket = "cinematica-api-lambda-source"
 }
 
+resource "aws_s3_bucket" "media_bucket" {
+    bucket = "media"
+}
+
+resource "aws_s3_object" "movies_directory" {
+    bucket = aws_s3_bucket.media_bucket.id
+    key    = "movies/"
+    content_type = "application/x-directory"
+}
+
+resource "aws_s3_object" "posts_directory" {
+    bucket = aws_s3_bucket.media_bucket.id
+    key    = "posts/"
+    content_type = "application/x-directory"
+}
+
+resource "aws_s3_object" "users_directory" {
+    bucket = aws_s3_bucket.media_bucket.id
+    key    = "users/"
+    content_type = "application/x-directory"
+}
 # # # # # #
 # Lambda  #
 # # # # # #
