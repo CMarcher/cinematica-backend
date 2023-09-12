@@ -25,6 +25,7 @@ provider "cloudflare" { }
 
 data "aws_region" "api_gateway_region" { provider = aws.us_east }
 data "aws_caller_identity" "current" {}
+data "cloudflare_zone" "cinematica_social" { name = "cinematica.social" }
 
 locals {
     account_id = data.aws_caller_identity.current.account_id
@@ -34,7 +35,6 @@ locals {
 variable "region" { default = "ap-southeast-2" }
 variable "api_domain_name" { default = "api.cinematica.social" }
 variable "cdn_domain_name" { default = "cdn.cinematica.social" }
-variable "zone_id" { }
 
 # # # # # #
 #   S3    #
@@ -45,7 +45,7 @@ resource "aws_s3_bucket" "api_lambda_bucket" {
 }
 
 resource "aws_s3_bucket" "media_bucket" {
-    bucket = "media"
+    bucket = "cinematica-media"
 }
 
 resource "aws_s3_object" "movies_directory" {
@@ -440,7 +440,7 @@ resource "cloudflare_record" "api_cinematica_social" {
     name    = var.api_domain_name
     type    = "CNAME"
     value   = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_domain_name
-    zone_id = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_zone_id
+    zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
 }
 
@@ -456,7 +456,7 @@ resource "cloudflare_record" "api_validation" {
     name    = trimsuffix(each.value.name, ".")
     type    = each.value.type
     value   = trimsuffix(each.value.record, ".")
-    zone_id = var.zone_id
+    zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
 }
 
@@ -464,7 +464,7 @@ resource "cloudflare_record" "cdn_cinematica_social" {
     name    = var.cdn_domain_name
     type    = "CNAME"
     value   = aws_cloudfront_distribution.s3_distribution.domain_name
-    zone_id = aws_cloudfront_distribution.s3_distribution.hosted_zone_id
+    zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
 }
 
@@ -480,6 +480,6 @@ resource "cloudflare_record" "cdn_validation" {
     name    = trimsuffix(each.value.name, ".")
     type    = each.value.type
     value   = trimsuffix(each.value.record, ".")
-    zone_id = var.zone_id
+    zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
 }
