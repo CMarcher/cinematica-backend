@@ -180,6 +180,7 @@ resource "aws_api_gateway_integration" "cinematica_api_gateway_integration" {
     type        = "AWS_PROXY"
     integration_http_method = "POST"
     uri = aws_lambda_function.cinematica_api_lambda.invoke_arn
+    credentials = aws_iam_role.api_gateway_cinematica_lambda_role.arn
 }
 
 resource "aws_lambda_permission" "api_gateway_lambda_permission" {
@@ -218,6 +219,40 @@ resource "aws_api_gateway_stage" "cinematica_production" {
     stage_name = var.stage_name
 
     depends_on = [aws_cloudwatch_log_group.cinematica_api_gateway_log_group]
+}
+
+resource "aws_iam_role" "api_gateway_cinematica_lambda_role" {
+    name = "APIGatewayCinematicaLambdaRole"
+    assume_role_policy = data.aws_iam_policy_document.api_gateway_lambda_assume_role.json
+}
+
+data "aws_iam_policy_document" "api_gateway_lambda_assume_role" {
+    statement {
+        effect = "Allow"
+
+        principals {
+            type = "Service"
+            identifiers = ["apigateway.amazonaws.com"]
+        }
+    }
+}
+
+resource "aws_iam_policy" "api_gateway_cinematica_lambda_access" {
+    name = "APIGatewayCinematicaLambdaAccess"
+    policy = data.aws_iam_policy_document.api_gateway_cinematica_lambda_policy_document.json
+}
+
+data "aws_iam_policy_document" "api_gateway_cinematica_lambda_policy_document" {
+    statement {
+        effect = "Allow"
+        actions = ["lambda:InvokeFunction"]
+        resources = [aws_lambda_function.cinematica_api_lambda.arn]
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "api_gateway_cinematica_lambda_attachment" {
+    policy_arn = aws_iam_policy.api_gateway_cinematica_lambda_access.arn
+    role       = aws_iam_role.api_gateway_cinematica_lambda_role.arn
 }
 
 resource "aws_api_gateway_account" "account" {
