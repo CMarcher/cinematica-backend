@@ -254,7 +254,7 @@ data "aws_iam_policy_document" "api_gateway_cinematica_lambda_policy_document" {
 
 resource "aws_iam_role_policy_attachment" "api_gateway_cinematica_lambda_attachment" {
     policy_arn = aws_iam_policy.api_gateway_cinematica_lambda_access.arn
-    role       = aws_iam_role.api_gateway_cinematica_lambda_role.arn
+    role       = aws_iam_role.api_gateway_cinematica_lambda_role.name
 }
 
 resource "aws_api_gateway_account" "account" {
