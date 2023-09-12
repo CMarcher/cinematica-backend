@@ -22,12 +22,15 @@ namespace Cinematica.API.Controllers
         private readonly IHelperService _helper;
         private DataContext _context;
         private AmazonCognitoIdentityProviderClient cognitoIdClient;
+        private readonly string _usersFiles;
 
-        public UsersController(IConfiguration config, IHelperService helperService, DataContext context)
+        public UsersController(IConfiguration config, IHelperService helperService, DataContext context, string myImages)
         {
+            APP_CONFIG = config.GetSection("AWS");
+
             _context = context;
             _helper = helperService;
-            APP_CONFIG = config.GetSection("AWS");
+            _usersFiles = Path.Combine(myImages, "users");
 
             cognitoIdClient = new AmazonCognitoIdentityProviderClient
             (
@@ -246,12 +249,13 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-profile-picture
         [HttpPost("set-profile-picture")]
-        public IActionResult SetProfilePicture([FromBody] SetPictureRequest model)
+        public IActionResult SetProfilePicture([FromForm] SetPictureRequest model)
         {
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
-                user.ProfilePicture = model.Picture;
+                var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
+                user.ProfilePicture = filepath;
                 _context.SaveChanges();
                 return Ok(new { message = "Profile picture successfully set." });
             }
@@ -263,12 +267,13 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-cover-picture
         [HttpPost("set-cover-picture")]
-        public IActionResult SetCoverPicture([FromBody] SetPictureRequest model)
+        public IActionResult SetCoverPicture([FromForm] SetPictureRequest model)
         {
             try
             {
                 var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
-                user.CoverPicture = model.Picture;
+                var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
+                user.CoverPicture = filepath;
                 _context.SaveChanges();
                 return Ok(new { message = "Cover picture successfully set." });
             }

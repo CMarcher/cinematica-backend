@@ -7,5 +7,5 @@ public class SetPictureRequest
     [Required]
     public string UserId { get; set; }
     [Required]
-    public string Picture { get; set; }
+    public IFormFile File { get; set; }
 }
