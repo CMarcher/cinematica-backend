@@ -41,7 +41,7 @@ public class MoviesController : ControllerBase
             return NotFound(); // Return a 404 Not Found response
         }
         //Pair down results into SimpleMovie type and return.
-        return Ok(SimpleMovie.MapToSimpleMovies(results));
+        return Ok(SimpleMovie.TMDbToSimpleMovies(results));
     }
 
     // GET api/<MoviesController>/{id}

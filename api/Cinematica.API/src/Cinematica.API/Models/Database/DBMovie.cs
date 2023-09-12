@@ -72,5 +72,15 @@ namespace Cinematica.API.Models.Database
             };
             return displayMovie;
         }
+
+        public static SimpleMovie DbMovieToSimpleMovie(DBMovie movie)
+        {
+            return new SimpleMovie
+            {
+                Id = movie.MovieId,
+                Title = movie.Title,
+                ReleaseYear = movie.ReleaseDate?.Year.ToString()
+            };
+        }
     }
 }
