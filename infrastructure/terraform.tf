@@ -358,11 +358,11 @@ resource "cloudflare_record" "api_cinematica_social" {
     name    = var.api_domain_name
     type    = "CNAME"
     value   = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_domain_name
-    zone_id = var.zone_id
+    zone_id = aws_api_gateway_domain_name.cinematica_api_domain.cloudfront_zone_id
     proxied = false
 }
 
-resource "cloudflare_record" "validation" {
+resource "cloudflare_record" "api_validation" {
     for_each = {
         for dvo in aws_acm_certificate.api_certificate.domain_validation_options : dvo.domain_name => {
             name   = dvo.resource_record_name
