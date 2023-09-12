@@ -6,17 +6,21 @@ using TMDbLib.Client;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Cinematica.API.Data;
 using Cinematica.API.Models;
+using Cinematica.API.Services;
+using Microsoft.Extensions.FileProviders;
 
 namespace Cinematica.API;
 
 public class Startup
 {
-    public Startup(IConfiguration configuration)
+    public Startup(IConfiguration configuration, IWebHostEnvironment environment)
     {
         Configuration = configuration;
+        Environment = environment;
     }
 
     public IConfiguration Configuration { get; }
+    public IWebHostEnvironment Environment { get; }
 
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
@@ -26,6 +30,12 @@ public class Startup
         TMDbClient client = new (TMDbApiKey);
 
         services.AddSingleton(client);
+
+        // Map the images folder
+        string myImages = Path.Combine(Environment.ContentRootPath, "images");
+
+        // Add the path to the service collection so it can be injected
+        services.AddSingleton(myImages);
 
         services.AddControllers();
 
@@ -43,11 +53,14 @@ public class Startup
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinematica API", Version = "v1" });
             });
 
+        services.AddScoped<IHelperService, HelperService>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseStaticFiles();
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -58,7 +71,16 @@ public class Startup
                 c.RoutePrefix = string.Empty; // Set the Swagger UI at the root URL
                 c.DocExpansion(DocExpansion.List); // Configure UI layout
             });
-
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(env.ContentRootPath, "images")),
+                RequestPath = "/images"
+            });
+        }
+        else
+        {
+            //TODO: S3 bucket details here for static file connection
         }
 
         app.UseHttpsRedirection();

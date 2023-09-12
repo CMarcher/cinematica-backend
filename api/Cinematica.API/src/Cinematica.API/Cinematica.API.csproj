@@ -37,6 +37,10 @@
 		<PackageReference Include="TMDbLib" Version="2.0.0" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="images\movies\" />
+	  <Folder Include="images\posts\" />
+	  <Folder Include="images\users\" />
 	  <Folder Include="Models\User\" />
+	  <Folder Include="Services\" />
 	</ItemGroup>
 </Project>

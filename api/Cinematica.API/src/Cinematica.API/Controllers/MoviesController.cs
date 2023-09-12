@@ -2,12 +2,14 @@
 using Cinematica.API.Models.Database;
 using Cinematica.API.Models.Display;
 using Cinematica.API.Data;
+using Cinematica.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
+using static System.Net.WebRequestMethods;
 
 namespace Cinematica.API.Controllers;
 
@@ -16,13 +18,17 @@ namespace Cinematica.API.Controllers;
 public class MoviesController : ControllerBase
 {
     private readonly TMDbClient _tmdbClient;
-
     private readonly DataContext _context;
+    private readonly IHelperService _helper;
+    private readonly string _tmDbPath = "http://image.tmdb.org/t/p/w500";
+    private readonly string _movieFiles;
 
-    public MoviesController(DataContext context, TMDbClient tmdbClient)
+    public MoviesController(DataContext context, TMDbClient tmdbClient, IHelperService helperService, string myImages)
     {
         _context = context;
         _tmdbClient = tmdbClient;
+        _helper = helperService;
+        _movieFiles = Path.Combine(myImages, "movies");
     }
 
     // GET: api/<MoviesController>/{searchTerm}
@@ -42,7 +48,7 @@ public class MoviesController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult Get(int id)
     {
-        //TODO: Check if already in database, if it is then return data from cache and database, else fetch from TMDb
+        //Check if already in database, if it is then return data from cache and database, else fetch from TMDb
         
         var checkMovie = _context.Movies.FirstOrDefault(m => m.MovieId == id);
         if (checkMovie == null)
@@ -53,8 +59,14 @@ public class MoviesController : ControllerBase
             {
                 return NotFound(); // Return a 404 Not Found response
             }
-            // TODO: Add to database and Images to Cache
+
+            // Add movie to database
             var newMovie = DBMovie.MapToDBMovie(movie);
+
+            // Add images to file cache and update newMovie with new file names.
+            newMovie.Poster = _helper.DownloadFile(_tmDbPath + movie.PosterPath, _movieFiles).Result;
+            newMovie.Banner = _helper.DownloadFile(_tmDbPath + movie.BackdropPath, _movieFiles).Result;
+            
             _context.Movies.Add(newMovie);
             //Add new Persons if not already in DB
             var cast = movie.Credits.Cast
@@ -67,7 +79,7 @@ public class MoviesController : ControllerBase
                 .ToList();
             _context.Persons.AddRange(cast);
 
-            //Add CastMembers
+            //Add CastMembers to Movie
             var castList = movie.Credits.Cast.Select(c => new CastMember()
             {
                 PersonId = c.Id,
