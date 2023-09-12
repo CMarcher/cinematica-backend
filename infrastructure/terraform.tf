@@ -103,7 +103,7 @@ data "aws_iam_policy_document" "cinematica_api_lambda_log_policy_document" {
             "logs:GetLogEvents"
         ]
 
-        resources = [aws_cloudwatch_log_group.cinematica_api_lambda_log_group.arn]
+        resources = ["${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.arn}:*"]
     }
 }
 
