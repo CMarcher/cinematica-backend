@@ -179,7 +179,7 @@ resource "aws_api_gateway_integration" "cinematica_api_gateway_integration" {
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     type        = "AWS_PROXY"
     integration_http_method = "POST"
-    uri = "arn:aws:apigateway:${data.aws_region.api_gateway_region.name}:lambda:path//2015-03-31/functions/${aws_lambda_function.cinematica_api_lambda.arn}/invocations"
+    uri = aws_lambda_function.cinematica_api_lambda.invoke_arn
 }
 
 resource "aws_lambda_permission" "api_gateway_lambda_permission" {
