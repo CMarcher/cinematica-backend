@@ -161,6 +161,7 @@ resource "aws_api_gateway_method" "cinematica_api_gateway_proxy_method" {
 }
 
 resource "aws_api_gateway_method_settings" "cinematica_api_gateway_all_methods" {
+    provider = aws.us_east
     method_path = "*/*"
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     stage_name  = aws_api_gateway_stage.cinematica_production.stage_name
