@@ -25,7 +25,7 @@ public class HelperService : IHelperService
             // Combine the savePath and the unique filename
             var fullPath = Path.Combine(savePath, fileName);
 
-            await System.IO.File.WriteAllBytesAsync(fullPath, bytes);
+            await File.WriteAllBytesAsync(fullPath, bytes);
 
             // Return the new filename
             return fileName;
