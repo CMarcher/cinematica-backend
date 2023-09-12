@@ -35,6 +35,7 @@ namespace Cinematica.API.Controllers
                 .Skip((page - 1) * 10) // Skip the posts before the current page
                 .Take(10) // Take only the posts of the current page
                 .ToListAsync();
+
             if (posts == null)
             {
                 return NotFound();

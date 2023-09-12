@@ -117,7 +117,7 @@ namespace Cinematica.API.Controllers
                                     .Where(u => u.UserId.Contains(id))
                                     .Select(p => new { p.FollowerId });
 
-                return Ok(new { followers = followers });
+                return Ok(followers);
             }
             catch (Exception e)
             {
@@ -135,7 +135,7 @@ namespace Cinematica.API.Controllers
                                     .Where(u => u.FollowerId.Contains(id))
                                     .Select(p => new { p.UserId });
 
-                return Ok(new { following = following });
+                return Ok(following);
             }
             catch (Exception e)
             {
@@ -185,7 +185,7 @@ namespace Cinematica.API.Controllers
                                     .Where(u => u.UserId.Contains(id))
                                     .Select(p => new { p.MovieId });
 
-                return Ok(new { movies = movies });
+                return Ok(movies);
             }
             catch (Exception e)
             {
@@ -194,16 +194,19 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<UsersController>/posts/id
-        [HttpGet("posts/{id}")]
-        public IActionResult GetUserPosts(string id)
+        [HttpGet("posts/{id}/{page}")]
+        public IActionResult GetUserPosts(string id, int page)
         {
             try
             {
                 var posts = _context.Posts
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.PostId });
+                                    .OrderByDescending(p => p.CreatedAt)
+                                    .Skip((page - 1) * 10)     
+                                    .Select(p => new { p.PostId })
+                                    .Take(10);
 
-                return Ok(new { posts = posts });
+                return Ok(posts);
             }
             catch (Exception e)
             {
@@ -212,16 +215,19 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<UsersController>/replies/id
-        [HttpGet("replies/{id}")]
-        public IActionResult GetUserReplies(string id)
+        [HttpGet("replies/{id}/{page}")]
+        public IActionResult GetUserReplies(string id, int page)
         {
             try
             {
                 var replies = _context.Replies
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(r => new { r.ReplyId });
+                                    .OrderByDescending(p => p.CreatedAt)
+                                    .Skip((page - 1) * 10)
+                                    .Select(r => new { r.ReplyId })
+                                    .Take(10);
 
-                return Ok(new { replies = replies });
+                return Ok(replies);
             }
             catch (Exception e)
             {
@@ -230,16 +236,19 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<UsersController>/replies/id
-        [HttpGet("likes/{id}")]
-        public IActionResult GetUserLikes(string id)
+        [HttpGet("likes/{id}/{page}")]
+        public IActionResult GetUserLikes(string id, int page)
         {
             try
             {
                 var likes = _context.Likes
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.PostId, p.ReplyId });
+                                    .OrderByDescending(l => l.LikeId)
+                                    .Skip((page - 1) * 10)
+                                    .Select(p => new { p.PostId, p.ReplyId })
+                                    .Take(10);
 
-                return Ok(new { likes = likes });
+                return Ok(likes);
             }
             catch (Exception e)
             {

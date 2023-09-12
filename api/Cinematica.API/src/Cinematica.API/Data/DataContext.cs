@@ -62,7 +62,7 @@ public partial class DataContext : DbContext
             
             entity.Property(e => e.LikeId)
                 .HasMaxLength(255)
-                .HasColumnName("running_time");
+                .HasColumnName("like_id");
 
             entity.Property(e => e.PostId)
                 .HasColumnName("post_id");
