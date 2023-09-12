@@ -45,7 +45,7 @@ resource "aws_s3_bucket" "api_lambda_bucket" {
 }
 
 resource "aws_s3_bucket" "media_bucket" {
-    bucket = "media"
+    bucket = "cinematica-media"
 }
 
 resource "aws_s3_object" "movies_directory" {
