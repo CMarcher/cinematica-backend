@@ -1,12 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
-using Amazon.CognitoIdentityProvider;
-using Amazon.CognitoIdentityProvider.Model;
-using Cinematica.API.Models.Cognito;
-using Amazon.Extensions.CognitoAuthentication;
-using Amazon;
-using System.Net;
 using Cinematica.API.Data;
 using Cinematica.API.Models.Database;
+using Cinematica.API.Models.Cognito;
+using Cinematica.API.Services;
+using Amazon.CognitoIdentityProvider;
+using Amazon.CognitoIdentityProvider.Model;
+using Amazon.Extensions.CognitoAuthentication;
+using Amazon;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+
 
 namespace Cinematica.API.Controllers;
 
@@ -14,13 +16,14 @@ namespace Cinematica.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration APP_CONFIG;
-    private DataContext context;
-    
+    private readonly IHelperService _helper;
+    private DataContext _context;
     private AmazonCognitoIdentityProviderClient cognitoIdClient;
 
-    public AuthController(IConfiguration config, DataContext context) {
+    public AuthController(IConfiguration config, IHelperService helperService, DataContext context) {
         APP_CONFIG = config.GetSection("AWS");
-        this.context = context;
+        _context = context;
+        _helper = helperService;
 
         cognitoIdClient = new AmazonCognitoIdentityProviderClient
         (
@@ -35,7 +38,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest model)
     {
         try {      
-            var user = await FindUserByEmailAddress(model.Email);
+            var user = await _helper.FindUserByEmailAddress(model.Email);
             if(user == null) {
                 // create and send registration request to cognito
                 var regRequest = new SignUpRequest
@@ -46,8 +49,6 @@ public class AuthController : ControllerBase
                     UserAttributes = { new AttributeType { Name = "email", Value = model.Email } }
                 };
                 var ret = await cognitoIdClient.SignUpAsync(regRequest);
-
-
 
                 return Ok(new { message = "Registration successful." });
             }
@@ -123,8 +124,8 @@ public class AuthController : ControllerBase
                 Username = model.Username,
             };
             var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
-            context.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null });
-            context.SaveChanges();
+            _context.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null });
+            _context.SaveChanges();
 
             return Ok(new { message = "Verification successful." });
         }
@@ -147,7 +148,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResendConfirmationCode([FromBody] string email)
     {
         try {
-            var user = await FindUserByEmailAddress(email);
+            var user = await _helper.FindUserByEmailAddress(email);
 
             if (user != null) {
                 var forgotPasswordResponse = await cognitoIdClient.ResendConfirmationCodeAsync
@@ -175,7 +176,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RequestPasswordReset([FromBody] string email)
     {
         try {
-            var user = await FindUserByEmailAddress(email);
+            var user = await _helper.FindUserByEmailAddress(email);
 
             if (user != null) {
                 var forgotPasswordResponse = await cognitoIdClient.ForgotPasswordAsync
@@ -210,7 +211,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await FindUserByEmailAddress(model.Email);
+            var user = await _helper.FindUserByEmailAddress(model.Email);
             if(user != null) {
                 var response = await cognitoIdClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
                 {
@@ -230,28 +231,6 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = e.GetType().ToString() });
         }
     }
-
-    // Helper function to find a user by email address (assuming that email is unique)
-    private async Task<UserType?> FindUserByEmailAddress(string emailAddress)
-    {
-        ListUsersRequest listUsersRequest = new ListUsersRequest
-        {
-            UserPoolId = APP_CONFIG["UserPoolId"],
-            Filter = "email = \"" + emailAddress + "\""
-        }; 
-        
-        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
-
-        if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK) 
-        {
-            var users = listUsersResponse.Users; 
-            return users.FirstOrDefault();
-        }
-        else 
-        {
-            return null;
-        }
-    } 
 }
 
 
