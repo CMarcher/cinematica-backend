@@ -28,10 +28,12 @@ data "aws_caller_identity" "current" {}
 
 locals {
     account_id = data.aws_caller_identity.current.account_id
+    s3_origin_id = "cinematica-origin"
 }
 
 variable "region" { default = "ap-southeast-2" }
 variable "api_domain_name" { default = "api.cinematica.social" }
+variable "cdn_domain_name" { default = "cdn.cinematica.social" }
 variable "zone_id" { }
 
 # # # # # #
@@ -63,6 +65,51 @@ resource "aws_s3_object" "users_directory" {
     key    = "users/"
     content_type = "application/x-directory"
 }
+# # # # # # # #
+# CloudFront  #
+# # # # # # # #
+
+resource "aws_cloudfront_distribution" "s3_distribution" {
+    enabled = true
+
+    origin {
+        domain_name = aws_s3_bucket.media_bucket.bucket_regional_domain_name
+        origin_id   = local.s3_origin_id
+
+        s3_origin_config {
+            origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_identity.cloudfront_access_identity_path
+        }
+    }
+
+    aliases = [var.cdn_domain_name]
+
+    viewer_certificate {
+        acm_certificate_arn = aws_acm_certificate.cdn_certificate.arn
+        minimum_protocol_version = "TLSv1.2_2018"
+        ssl_support_method = "sni-only"
+        cloudfront_default_certificate = false
+    }
+
+    default_cache_behavior {
+        target_origin_id       = local.s3_origin_id
+        viewer_protocol_policy = "redirect-to-https"
+        allowed_methods = ["GET"]
+        cached_methods = ["GET"]
+
+        forwarded_values {
+            query_string = false
+
+            cookies {
+                forward = "none"
+            }
+        }
+
+        compress = true
+    }
+}
+
+resource "aws_cloudfront_origin_access_identity" "cloudfront_s3_identity" { }
+
 # # # # # #
 # Lambda  #
 # # # # # #
@@ -350,6 +397,16 @@ resource "aws_acm_certificate" "api_certificate" {
     }
 }
 
+resource "aws_acm_certificate" "cdn_certificate" {
+    domain_name = var.cdn_domain_name
+    validation_method = "DNS"
+    provider = aws.us_east
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
 # # # # # # # #
 #  CloudFlare #
 # # # # # # # #
@@ -365,6 +422,30 @@ resource "cloudflare_record" "api_cinematica_social" {
 resource "cloudflare_record" "api_validation" {
     for_each = {
         for dvo in aws_acm_certificate.api_certificate.domain_validation_options : dvo.domain_name => {
+            name   = dvo.resource_record_name
+            record = dvo.resource_record_value
+            type   = dvo.resource_record_type
+        }
+    }
+
+    name    = trimsuffix(each.value.name, ".")
+    type    = each.value.type
+    value   = trimsuffix(each.value.record, ".")
+    zone_id = var.zone_id
+    proxied = false
+}
+
+resource "cloudflare_record" "cdn_cinematica_social" {
+    name    = var.cdn_domain_name
+    type    = "CNAME"
+    value   = aws_cloudfront_distribution.s3_distribution.domain_name
+    zone_id = aws_cloudfront_distribution.s3_distribution.hosted_zone_id
+    proxied = false
+}
+
+resource "cloudflare_record" "cdn_validation" {
+    for_each = {
+        for dvo in aws_acm_certificate.cdn_certificate.domain_validation_options : dvo.domain_name => {
             name   = dvo.resource_record_name
             record = dvo.resource_record_value
             type   = dvo.resource_record_type
