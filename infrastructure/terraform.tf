@@ -252,7 +252,7 @@ data "aws_iam_policy_document" "api_gateway_log_policy_document" {
             "logs:FilterLogEvents"
         ]
 
-        resources = ["arn:aws:logs:*:${local.account_id}:log-group:API-Gateway-Execution-Logs_*:*"]
+        resources = ["*"]
     }
 }
 
