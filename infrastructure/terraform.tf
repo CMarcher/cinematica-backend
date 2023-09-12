@@ -103,7 +103,7 @@ data "aws_iam_policy_document" "cinematica_api_lambda_log_policy_document" {
             "logs:GetLogEvents"
         ]
 
-        resources = ["arn:aws:logs:ap-southeast-2:${local.account_id}:log-group:${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.name}:*"]
+        resources = [aws_cloudwatch_log_group.cinematica_api_lambda_log_group.arn]
     }
 }
 
@@ -200,6 +200,63 @@ resource "aws_api_gateway_stage" "cinematica_production" {
     deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
     stage_name = "production"
+}
+
+resource "aws_api_gateway_account" "account" {
+    provider = aws.us_east
+    cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
+}
+
+resource "aws_iam_role" "api_gateway_logging_role" {
+    name = "APIGatewayCloudWatchRole"
+    assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role.json
+}
+
+data "aws_iam_policy_document" "api_gateway_assume_role" {
+    statement {
+        effect = "Allow"
+
+        principals {
+            type = "Service"
+            identifiers = ["apigateway.amazonaws.com"]
+        }
+
+        actions = ["sts:AssumeRole"]
+    }
+}
+
+resource "aws_iam_policy" "api_gateway_logging_access" {
+    name = "APIGatewayCloudWatchLogsAccess"
+    path = "/"
+    description = "IAM policy that allows API Gateway to write logs"
+    policy = data.aws_iam_policy_document.api_gateway_log_policy_document.json
+}
+
+data "aws_iam_policy_document" "api_gateway_log_policy_document" {
+    statement {
+        effect = "Allow"
+
+        actions = [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:DescribeLogGroups",
+            "logs:DescribeLogStreams",
+            "logs:PutLogEvents",
+            "logs:GetLogEvents"
+        ]
+
+        resources = ["arn:aws:logs:*:${local.account_id}:log-group:API-Gateway-Execution-Logs_*:*"]
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "cinematica_api_gateway_log_policy_attachment" {
+    role = aws_iam_role.api_gateway_logging_role.name
+    policy_arn = aws_iam_policy.api_gateway_logging_access.arn
+}
+
+resource "aws_cloudwatch_log_group" "cinematica_api_gateway_log_group" {
+    name = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.cinematica_api_gateway.id}/${aws_api_gateway_stage.cinematica_production.stage_name}"
+    retention_in_days = 14
 }
 
 # # # # #
