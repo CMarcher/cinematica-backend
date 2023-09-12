@@ -77,10 +77,15 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/follow
         [HttpPost("follow")]
-        public IActionResult Follow([FromBody] FollowRequest model)
+        public IActionResult Follow([FromBody] UserFollower model)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 _context.Add(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId});
                 _context.SaveChanges();
                 return Ok(new { message = "Follow success." });
@@ -93,7 +98,7 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/unfollow
         [HttpPost("unfollow")]
-        public IActionResult Unfollow([FromBody] FollowRequest model)
+        public IActionResult Unfollow([FromBody] UserFollower model)
         {
             try
             {
@@ -145,11 +150,11 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/add-movie
         [HttpPost("add-movie")]
-        public IActionResult AddMovie([FromBody] MovieRequest model)
+        public IActionResult AddMovie([FromBody] UserMovie model)
         {
             try
             {
-                _context.Add(new UserMovie { UserId = model.UserId, MovieId = model.MovieId });
+                _context.Add(model);
                 _context.SaveChanges();
                 return Ok(new { message = "Movie successfully added to user." });
             }
@@ -161,11 +166,11 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/remove-movie
         [HttpPost("remove-movie")]
-        public IActionResult RemoveMovie([FromBody] MovieRequest model)
+        public IActionResult RemoveMovie([FromBody] UserMovie model)
         {
             try
             {
-                _context.Remove(new UserMovie { UserId = model.UserId, MovieId = model.MovieId });
+                _context.Remove(model);
                 _context.SaveChanges();
                 return Ok(new { message = "Successfully removed movie from user." });
             }
@@ -245,7 +250,7 @@ namespace Cinematica.API.Controllers
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(l => l.LikeId)
                                     .Skip((page - 1) * 10)
-                                    .Select(p => new { p.PostId, p.ReplyId })
+                                    .Select(p => new { p.LikeId, p.PostId, p.ReplyId })
                                     .Take(10);
 
                 return Ok(likes);
@@ -258,14 +263,15 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-profile-picture
         [HttpPost("set-profile-picture")]
-        public IActionResult SetProfilePicture([FromForm] SetPictureRequest model)
+        public async Task<IActionResult> SetProfilePicture([FromForm] SetPictureRequest model)
         {
             try
             {
-                var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
+                var user = await _context.Users.FindAsync(model.UserId);
                 var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
                 user.ProfilePicture = filepath;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
                 return Ok(new { message = "Profile picture successfully set." });
             }
             catch (Exception e)
@@ -276,14 +282,15 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-cover-picture
         [HttpPost("set-cover-picture")]
-        public IActionResult SetCoverPicture([FromForm] SetPictureRequest model)
+        public async Task<IActionResult> SetCoverPicture([FromForm] SetPictureRequest model)
         {
             try
             {
-                var user = _context.Users.SingleOrDefault(u => u.UserId == model.UserId);
+                var user = await _context.Users.FindAsync(model.UserId);
                 var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
                 user.CoverPicture = filepath;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
                 return Ok(new { message = "Cover picture successfully set." });
             }
             catch (Exception e)

@@ -78,6 +78,7 @@ CREATE TABLE replies
 CREATE TABLE user_followers (
 	user_id varchar(255) not null,
 	follower_id varchar(255) not null,
+	PRIMARY KEY(user_id, follower_id),
 	FOREIGN KEY (user_id) references users (user_id),
 	FOREIGN KEY (follower_id) references users (user_id)
 );
@@ -85,6 +86,7 @@ CREATE TABLE user_followers (
 CREATE TABLE user_movies (
 	user_id varchar(255) not null,
 	movie_id int not null,
+	PRIMARY KEY(user_id, movie_id),
 	FOREIGN KEY (user_id) references users (user_id),
 	FOREIGN KEY (movie_id) references movies (movie_id)
 );
@@ -102,9 +104,13 @@ CREATE TABLE likes (
 	FOREIGN KEY (reply_id) references replies (reply_id)
 );
 
+CREATE UNIQUE INDEX on likes(user_id,post_id);
+CREATE UNIQUE INDEX on likes(user_id,reply_id);
+
 CREATE TABLE movie_selections (
 	post_id bigint not null,
 	movie_id int not null,
+	PRIMARY KEY(post_id, movie_id),
 	FOREIGN KEY (post_id) references posts (post_id),
 	FOREIGN KEY (movie_id) references movies (movie_id)
 );
@@ -112,12 +118,14 @@ CREATE TABLE movie_selections (
 CREATE TABLE movie_genres (
 	movie_id int not null,
 	genre varchar(255) not null,
+	PRIMARY KEY(movie_id, genre),
 	FOREIGN KEY (movie_id) references movies (movie_id)
 );
 
 CREATE TABLE movie_studios (
 	movie_id int not null,
 	studio_id int not null,
+	PRIMARY KEY(movie_id, studio_id),
 	FOREIGN KEY (movie_id) references movies (movie_id),
 	FOREIGN KEY (studio_id) references studios (studio_id)
 );
@@ -126,6 +134,7 @@ CREATE TABLE cast_members (
 	movie_id int not null,
 	person_id int not null,
 	role varchar(255) not null,
+	PRIMARY KEY(movie_id, person_id),
 	FOREIGN KEY (movie_id) references movies (movie_id),
 	FOREIGN KEY (person_id) references person (person_id)
 );

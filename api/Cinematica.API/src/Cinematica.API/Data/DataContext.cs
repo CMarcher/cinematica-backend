@@ -61,7 +61,7 @@ public partial class DataContext : DbContext
             entity.ToTable("likes");
             
             entity.Property(e => e.LikeId)
-                .HasMaxLength(255)
+                .ValueGeneratedOnAdd()
                 .HasColumnName("like_id");
 
             entity.Property(e => e.PostId)

@@ -41,6 +41,13 @@ public class Startup
 
         services.AddDbContext<DataContext>();
 
+        // Removes null fields when sending JSON response
+        services.AddMvc()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.IgnoreNullValues = true;
+            });
+
         services.AddCors(options => {
             options.AddPolicy("AllowReactFrontend",
                 builder => builder.WithOrigins("https://localhost:3000")
