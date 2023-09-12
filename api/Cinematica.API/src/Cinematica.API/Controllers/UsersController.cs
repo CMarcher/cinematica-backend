@@ -1,12 +1,14 @@
 ﻿using Cinematica.API.Data;
 using Cinematica.API.Models.User;
 using Cinematica.API.Models.Database;
+using Cinematica.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
-using System.Net;
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,13 +19,14 @@ namespace Cinematica.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IConfiguration APP_CONFIG;
+        private readonly IHelperService _helper;
         private DataContext _context;
         private AmazonCognitoIdentityProviderClient cognitoIdClient;
 
-        public UsersController(IConfiguration config, DataContext context)
+        public UsersController(IConfiguration config, IHelperService helperService, DataContext context)
         {
             _context = context;
-
+            _helper = helperService;
             APP_CONFIG = config.GetSection("AWS");
 
             cognitoIdClient = new AmazonCognitoIdentityProviderClient
@@ -41,7 +44,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // get user from cognito
-                var cognitoUser = await GetCognitoUser(id);
+                var cognitoUser = await _helper.GetCognitoUser(id);
 
                 // get user from postgre database
                 var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
@@ -272,28 +275,6 @@ namespace Cinematica.API.Controllers
             catch (Exception e)
             {
                 return BadRequest(new { message = e.ToString() });
-            }
-        }
-
-        // Helper function to find a cognito user by id
-        private async Task<UserType?> GetCognitoUser(string id)
-        {
-            ListUsersRequest listUsersRequest = new ListUsersRequest
-            {
-                UserPoolId = APP_CONFIG["UserPoolId"],
-                Filter = "sub = \"" + id + "\""
-            };
-
-            var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
-
-            if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
-            {
-                var users = listUsersResponse.Users;
-                return users.FirstOrDefault();
-            }
-            else
-            {
-                return null;
             }
         }
     }

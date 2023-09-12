@@ -1,4 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Amazon.CognitoIdentityProvider;
+using Amazon.CognitoIdentityProvider.Model;
+using Amazon.Extensions.CognitoAuthentication;
+using System.Net;
+using Amazon;
 
 namespace Cinematica.API.Services;
 
@@ -6,10 +11,27 @@ public interface IHelperService
 {
     Task<string> UploadFile(IFormFile file, string savePath);
     Task<string> DownloadFile(string url, string savePath);
+    Task<UserType?> FindUserByEmailAddress(string emailAddress);
+    Task<UserType?> GetCognitoUser(string id);
 }
 
 public class HelperService : IHelperService
 {
+    private readonly IConfiguration APP_CONFIG;
+    private AmazonCognitoIdentityProviderClient cognitoIdClient;
+
+    public HelperService(IConfiguration config)
+    {
+        APP_CONFIG = config.GetSection("AWS");
+
+        cognitoIdClient = new AmazonCognitoIdentityProviderClient
+        (
+            APP_CONFIG["AccessKeyId"],
+            APP_CONFIG["AccessSecretKey"],
+            RegionEndpoint.GetBySystemName(APP_CONFIG["Region"])
+        );
+    }
+
     public async Task<string> DownloadFile(string url, string savePath)
     {
         using var client = new HttpClient();
@@ -36,7 +58,6 @@ public class HelperService : IHelperService
         }
     }
 
-
     public async Task<string> UploadFile(IFormFile file, string savePath)
     {
         if (file == null || file.Length == 0)
@@ -57,5 +78,49 @@ public class HelperService : IHelperService
 
         // Return the new filename
         return fileName;
+    }
+
+    // Helper function to find a user by email address (assuming that email is unique)
+    public async Task<UserType?> FindUserByEmailAddress(string emailAddress)
+    {
+        ListUsersRequest listUsersRequest = new ListUsersRequest
+        {
+            UserPoolId = APP_CONFIG["UserPoolId"],
+            Filter = "email = \"" + emailAddress + "\""
+        };
+
+        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+
+        if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
+        {
+            var users = listUsersResponse.Users;
+            return users.FirstOrDefault();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    // Helper function to find a cognito user by id
+    public async Task<UserType?> GetCognitoUser(string id)
+    {
+        ListUsersRequest listUsersRequest = new ListUsersRequest
+        {
+            UserPoolId = APP_CONFIG["UserPoolId"],
+            Filter = "sub = \"" + id + "\""
+        };
+
+        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+
+        if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
+        {
+            var users = listUsersResponse.Users;
+            return users.FirstOrDefault();
+        }
+        else
+        {
+            return null;
+        }
     }
 }
