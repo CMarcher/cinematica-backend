@@ -234,6 +234,8 @@ data "aws_iam_policy_document" "api_gateway_lambda_assume_role" {
             type = "Service"
             identifiers = ["apigateway.amazonaws.com"]
         }
+
+        actions = ["sts:AssumeRole"]
     }
 }
 
