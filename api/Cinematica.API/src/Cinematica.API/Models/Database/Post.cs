@@ -12,6 +12,7 @@ namespace Cinematica.API.Models.Database
         public DateTime CreatedAt { get; set; }
         public string Body { get; set; }
         public string Image { get; set; }
+        public bool isSpoiler { get; set; }
 
         public virtual User User { get; set; }
     }

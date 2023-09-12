@@ -231,7 +231,7 @@ namespace Cinematica.API.Controllers
             {
                 var likes = _context.Likes
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.PostId });
+                                    .Select(p => new { p.PostId, p.ReplyId });
 
                 return Ok(new { likes = likes });
             }

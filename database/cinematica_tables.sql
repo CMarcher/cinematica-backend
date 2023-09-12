@@ -1,18 +1,17 @@
-
 /*
 DROP TABLE likes;
 DROP TABLE movie_selections;
 DROP TABLE user_movies;
 DROP TABLE user_followers;
+DROP TABLE movie_genres;
+DROP TABLE movie_studios;
+DROP TABLE cast_members;
+DROP TABLE replies;
 DROP TABLE posts;
-DROP TABLE users;
+DROP TABLE person;
+DROP TABLE studios;
 DROP TABLE movies;
---DROP TABLE person;
---DROP TABLE genres;
---DROP TABLE studios;
---DROP TABLE movie_genres;
---DROP TABLE movie_studios;
---DROP TABLE cast_members;
+DROP TABLE users;
 */
 
 
@@ -41,34 +40,35 @@ CREATE TABLE movies
 CREATE TABLE person
 (
 	person_id int,
-	person_name varchar(255),
+	person_name varchar(255) not null,
 	PRIMARY KEY (person_id)
 );
 
 CREATE TABLE studios
 (
 	studio_id int,
-	studio_name varchar(255),
+	studio_name varchar(255) not null,
 	PRIMARY KEY (studio_id)
 );
 
 CREATE TABLE posts
 (
-	post_id bigint,
+	post_id bigserial NOT null,
 	user_id varchar(255) not null,
-	created_at timestamptz not null,
+	created_at timestamptz DEFAULT NOW() not null,
 	body text not null,
 	image varchar(255),
+	is_spoiler bool DEFAULT false not null,
 	PRIMARY KEY (post_id),
 	FOREIGN KEY (user_id) references users (user_id)
 );
 
 CREATE TABLE replies
 (
-	reply_id bigint,
-	post_id bigint,
+	reply_id bigserial NOT null,
+	post_id bigint Not null,
 	user_id varchar(255) not null,
-	created_at timestamptz not null,
+	created_at timestamptz DEFAULT NOW() not null ,
 	body text not null,
 	PRIMARY KEY (reply_id),
 	FOREIGN KEY (user_id) references users (user_id),
@@ -90,10 +90,16 @@ CREATE TABLE user_movies (
 );
 
 CREATE TABLE likes (
+	like_id bigserial NOT null,
 	user_id varchar(255) not null,
-	post_id bigint not null,
+	post_id bigint,
+	reply_id bigint,
+	CHECK ((post_id IS null) != (reply_id is null)),
+	
+	PRIMARY KEY (like_id),
 	FOREIGN KEY (user_id) references users (user_id),
-	FOREIGN KEY (post_id) references posts (post_id)
+	FOREIGN KEY (post_id) references posts (post_id),
+	FOREIGN KEY (reply_id) references replies (reply_id)
 );
 
 CREATE TABLE movie_selections (

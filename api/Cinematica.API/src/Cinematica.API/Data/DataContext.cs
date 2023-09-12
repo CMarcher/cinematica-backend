@@ -59,8 +59,16 @@ public partial class DataContext : DbContext
         modelBuilder.Entity<Like>(entity =>
         {
             entity.ToTable("likes");
+            
+            entity.Property(e => e.LikeId)
+                .HasMaxLength(255)
+                .HasColumnName("running_time");
 
-            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.PostId)
+                .HasColumnName("post_id");
+
+            entity.Property(e => e.ReplyId)
+                .HasColumnName("reply_id");
 
             entity.Property(e => e.UserId)
                 .IsRequired()
@@ -73,13 +81,20 @@ public partial class DataContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("likes_post_id_fkey");
 
+            entity.HasOne(d => d.Reply)
+                .WithMany()
+                .HasForeignKey(d => d.ReplyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("likes_reply_id_fkey");
+            
             entity.HasOne(d => d.User)
                 .WithMany()
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("likes_user_id_fkey");
 
-            entity.HasKey(e => new { e.UserId, e.PostId });
+            entity.HasKey(e => e.LikeId)
+                .HasName("likes_pkey");
         });
 
         modelBuilder.Entity<MovieGenres>(entity =>
@@ -198,7 +213,7 @@ public partial class DataContext : DbContext
             entity.ToTable("posts");
 
             entity.Property(e => e.PostId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("post_id");
 
             entity.Property(e => e.Body)
@@ -208,7 +223,13 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Image)
                 .HasColumnName("image");
 
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.isSpoiler)
+                .HasDefaultValue(true)
+                .HasColumnName("is_spoiler");
+
+            entity.Property(e => e.CreatedAt)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("created_at");
 
             entity.Property(e => e.UserId)
                 .IsRequired()
@@ -230,7 +251,7 @@ public partial class DataContext : DbContext
             entity.ToTable("replies");
 
             entity.Property(e => e.ReplyId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("reply_id");
 
             entity.Property(e => e.PostId)
@@ -241,7 +262,9 @@ public partial class DataContext : DbContext
                 .IsRequired()
                 .HasColumnName("body");
 
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.CreatedAt)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("created_at");
 
             entity.Property(e => e.UserId)
                 .IsRequired()
