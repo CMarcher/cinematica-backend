@@ -195,11 +195,15 @@ resource "aws_api_gateway_deployment" "cinematica_deployment" {
     }
 }
 
+variable "stage_name" {
+    default = "production"
+}
+
 resource "aws_api_gateway_stage" "cinematica_production" {
     provider = aws.us_east
     deployment_id = aws_api_gateway_deployment.cinematica_deployment.id
     rest_api_id = aws_api_gateway_rest_api.cinematica_api_gateway.id
-    stage_name = "production"
+    stage_name = var.stage_name
 
     depends_on = [aws_cloudwatch_log_group.cinematica_api_gateway_log_group]
 }
@@ -257,7 +261,7 @@ resource "aws_iam_role_policy_attachment" "cinematica_api_gateway_log_policy_att
 }
 
 resource "aws_cloudwatch_log_group" "cinematica_api_gateway_log_group" {
-    name = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.cinematica_api_gateway.id}/${aws_api_gateway_stage.cinematica_production.stage_name}"
+    name = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.cinematica_api_gateway.id}/${var.stage_name}"
     retention_in_days = 14
 }
 
