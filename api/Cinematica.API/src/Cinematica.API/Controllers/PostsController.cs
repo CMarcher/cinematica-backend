@@ -58,6 +58,47 @@ namespace Cinematica.API.Controllers
             }
         }
 
+        // GET: api/<PostsController>/following/{userId}/{page}
+        [HttpGet("following/{userId}/{page}")]
+        public async Task<IActionResult> GetFollowingPosts(string userId, int page = 1)
+        {
+            // Get the list of users that the current user is following
+            var followingIds = await _context.UserFollowers
+                .Where(uf => uf.FollowerId == userId)
+                .Select(uf => uf.UserId)
+                .ToListAsync();
+
+            // Get the "page" of posts from the users that the current user is following
+            var posts = await _context.Posts
+                .Where(p => followingIds.Contains(p.UserId)) // Filter by following users
+                .OrderByDescending(p => p.CreatedAt) // Order by creation date
+                .Skip((page - 1) * 10) // Skip the posts before the current page
+                .Take(10) // Take only the posts of the current page
+                .ToListAsync();
+
+            if (posts == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var postDetailsList = new List<PostDetails>();
+
+                foreach (var post in posts)
+                {
+                    var postDetails = await GetPost(post.PostId, userId);
+                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
+                    {
+                        postDetailsList.Add(details);
+                    }
+                }
+
+                // Return the paginated list of PostDetails
+                return Ok(postDetailsList);
+            }
+        }
+
+
         // GET api/<PostsController>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost(long id, string? userId = null)
@@ -238,7 +279,6 @@ namespace Cinematica.API.Controllers
                 // If the like doesn't exist, create it
                 like = new Like
                 {
-                    LikeId = postId,
                     PostId = postId,
                     UserId = userId
                 };
