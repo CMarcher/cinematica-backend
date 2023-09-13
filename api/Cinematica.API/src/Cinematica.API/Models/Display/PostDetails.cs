@@ -8,4 +8,5 @@ public class PostDetails
     public int CommentsCount { get; set; }
     public int LikesCount { get; set; }
     public List<SimpleMovie> Movies { get; set; }
+    public bool youLike { get; set; }
 }
