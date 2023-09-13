@@ -100,7 +100,7 @@ namespace Cinematica.API.Controllers
 
 
         // GET api/<PostsController>/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}/{userId?}")]
         public async Task<IActionResult> GetPost(long id, string? userId = null)
         {
             var post = await _context.Posts.FindAsync(id);
