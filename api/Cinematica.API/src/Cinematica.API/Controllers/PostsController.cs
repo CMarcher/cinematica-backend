@@ -58,6 +58,47 @@ namespace Cinematica.API.Controllers
             }
         }
 
+        // GET: api/<PostsController>/following/{userId}/{page}
+        [HttpGet("following/{userId}/{page}")]
+        public async Task<IActionResult> GetFollowingPosts(string userId, int page = 1)
+        {
+            // Get the list of users that the current user is following
+            var followingIds = await _context.UserFollowers
+                .Where(uf => uf.FollowerId == userId)
+                .Select(uf => uf.UserId)
+                .ToListAsync();
+
+            // Get the "page" of posts from the users that the current user is following
+            var posts = await _context.Posts
+                .Where(p => followingIds.Contains(p.UserId)) // Filter by following users
+                .OrderByDescending(p => p.CreatedAt) // Order by creation date
+                .Skip((page - 1) * 10) // Skip the posts before the current page
+                .Take(10) // Take only the posts of the current page
+                .ToListAsync();
+
+            if (posts == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var postDetailsList = new List<PostDetails>();
+
+                foreach (var post in posts)
+                {
+                    var postDetails = await GetPost(post.PostId, userId);
+                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
+                    {
+                        postDetailsList.Add(details);
+                    }
+                }
+
+                // Return the paginated list of PostDetails
+                return Ok(postDetailsList);
+            }
+        }
+
+
         // GET api/<PostsController>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost(long id, string? userId = null)
@@ -98,7 +139,7 @@ namespace Cinematica.API.Controllers
 
         // POST api/<PostsController>
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] Post newPost, [FromForm] IFormFile? imageFile = null, [FromForm] int[] movieIds = null)
+        public async Task<IActionResult> AddPost([FromForm] Post newPost, [FromForm] int[] movieIds, [FromForm] IFormFile? imageFile = null)
         {
             if (!ModelState.IsValid)
             {
@@ -118,7 +159,6 @@ namespace Cinematica.API.Controllers
             await _context.SaveChangesAsync();
 
             // Associate movies with the post
-            if (movieIds == null) return Ok(newPost);
             foreach (var movieId in movieIds)
             {
                 var movieSelection = new MovieSelection
@@ -149,7 +189,7 @@ namespace Cinematica.API.Controllers
             // Upload the image file and get the filename
             if (imageFile != null)
             {
-                string fileName = await _helper.UploadFile(imageFile, _postFiles);
+                var fileName = await _helper.UploadFile(imageFile, _postFiles);
 
                 // Set the Image property of the updated post
                 updatedPost.Image = fileName;
@@ -238,7 +278,6 @@ namespace Cinematica.API.Controllers
                 // If the like doesn't exist, create it
                 like = new Like
                 {
-                    LikeId = postId,
                     PostId = postId,
                     UserId = userId
                 };
@@ -256,9 +295,7 @@ namespace Cinematica.API.Controllers
             return NoContent();
         }
 
-
-
-
+        // Helper to see if a Post exists
         private bool PostExists(long id)
         {
             return _context.Posts.Any(e => e.PostId == id);
