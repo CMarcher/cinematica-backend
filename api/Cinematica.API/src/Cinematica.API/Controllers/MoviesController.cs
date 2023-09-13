@@ -20,7 +20,7 @@ public class MoviesController : ControllerBase
     private readonly TMDbClient _tmdbClient;
     private readonly DataContext _context;
     private readonly IHelperService _helper;
-    private readonly string _tmDbPath = "http://image.tmdb.org/t/p/w500";
+    private const string TmDbPath = "http://image.tmdb.org/t/p/w500";
     private readonly string _movieFiles;
 
     public MoviesController(DataContext context, TMDbClient tmdbClient, IHelperService helperService, string myImages)
@@ -33,9 +33,9 @@ public class MoviesController : ControllerBase
 
     // GET: api/<MoviesController>/{searchTerm}
     [HttpGet("search/{searchTerm}")]
-    public IActionResult Get(string searchTerm)
+    public async Task<IActionResult> Get(string searchTerm)
     {
-        SearchContainer<SearchMovie> results = _tmdbClient.SearchMovieAsync(searchTerm).Result;
+        SearchContainer<SearchMovie> results = await _tmdbClient.SearchMovieAsync(searchTerm);
         if (results == null)
         {
             return NotFound(); // Return a 404 Not Found response
@@ -46,15 +46,15 @@ public class MoviesController : ControllerBase
 
     // GET api/<MoviesController>/{id}
     [HttpGet("{id}")]
-    public IActionResult Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
         //Check if already in database, if it is then return data from cache and database, else fetch from TMDb
         
-        var checkMovie = _context.Movies.FirstOrDefault(m => m.MovieId == id);
+        var checkMovie = await _context.Movies.FirstOrDefaultAsync(m => m.MovieId == id);
         if (checkMovie == null)
         {
             //Fetch from TMDb
-            Movie movie = _tmdbClient.GetMovieAsync(id, MovieMethods.Credits).Result;
+            var movie = await _tmdbClient.GetMovieAsync(id, MovieMethods.Credits);
             if (movie == null)
             {
                 return NotFound(); // Return a 404 Not Found response
@@ -64,8 +64,8 @@ public class MoviesController : ControllerBase
             var newMovie = DBMovie.MapToDBMovie(movie);
 
             // Add images to file cache and update newMovie with new file names.
-            newMovie.Poster = _helper.DownloadFile(_tmDbPath + movie.PosterPath, _movieFiles).Result;
-            newMovie.Banner = _helper.DownloadFile(_tmDbPath + movie.BackdropPath, _movieFiles).Result;
+            newMovie.Poster = await _helper.DownloadFile(TmDbPath + movie.PosterPath, _movieFiles);
+            newMovie.Banner = await _helper.DownloadFile(TmDbPath + movie.BackdropPath, _movieFiles);
             
             _context.Movies.Add(newMovie);
             //Add new Persons if not already in DB
@@ -115,15 +115,35 @@ public class MoviesController : ControllerBase
             }).ToList();
             _context.MovieStudios.AddRange(studioList);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             // Return DisplayMovie
             return Ok(DBMovie.toDisplayMovie(newMovie, _context));
         }
-        else
-        {
-            return Ok(DBMovie.toDisplayMovie(checkMovie, _context));
-        }
+
+        return Ok(DBMovie.toDisplayMovie(checkMovie, _context));
     }
+
+    [HttpGet("withPosts")]
+    public async Task<IActionResult> GetMoviesWithPosts()
+    {
+        // Get the movies that have posts about them
+        var movies = await _context.MovieSelections
+            .Select(m => m.Movie) // Select the associated movies
+            .Distinct() // Remove duplicates
+            .ToListAsync();
+
+        if (movies == null)
+        {
+            return NotFound();
+        }
+
+        // Convert DBMovie to SimpleMovie
+        var simpleMovies = movies.Select(DBMovie.DbMovieToSimpleMovie).ToList();
+
+        // Return the list of SimpleMovie objects
+        return Ok(simpleMovies);
+    }
+
 }
 

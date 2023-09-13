@@ -208,8 +208,6 @@ namespace Cinematica.API.Controllers
             return Ok(newPost);
         }
 
-
-
         // PUT: api/<PostsController>/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePost(long id, [FromForm] Post updatedPost, [FromForm] IFormFile? imageFile = null, [FromForm] int[]? movieIds = null)
@@ -236,14 +234,12 @@ namespace Cinematica.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PostExists(id))
+                if (!PostExists(id).Result)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             // Update the movies associated with the post
@@ -329,9 +325,9 @@ namespace Cinematica.API.Controllers
         }
 
         // Helper to see if a Post exists
-        private bool PostExists(long id)
+        private async Task<bool> PostExists(long id)
         {
-            return _context.Posts.Any(e => e.PostId == id);
+            return await _context.Posts.AnyAsync(e => e.PostId == id);
         }
     }
 }
