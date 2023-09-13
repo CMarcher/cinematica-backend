@@ -98,6 +98,39 @@ namespace Cinematica.API.Controllers
             }
         }
 
+        [HttpGet("search/{movieId}/{page}")]
+        public async Task<IActionResult> GetPostsByMovie(int movieId, int page = 1)
+        {
+            // Get the "page" of posts that contain the specified movie
+            var posts = await _context.MovieSelections
+                .Where(m => m.MovieId == movieId) // Filter by movie ID
+                .Select(m => m.Post) // Select the associated posts
+                .OrderByDescending(p => p.CreatedAt) // Order by creation date
+                .Skip((page - 1) * 10) // Skip the posts before the current page
+                .Take(10) // Take only the posts of the current page
+                .ToListAsync();
+
+            if (posts == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var postDetailsList = new List<PostDetails>();
+
+                foreach (var post in posts)
+                {
+                    var postDetails = await GetPost(post.PostId);
+                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
+                    {
+                        postDetailsList.Add(details);
+                    }
+                }
+
+                // Return the paginated list of PostDetails
+                return Ok(postDetailsList);
+            }
+        }
 
         // GET api/<PostsController>/5
         [HttpGet("{id}/{userId?}")]
