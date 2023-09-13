@@ -60,25 +60,31 @@ namespace Cinematica.API.Controllers
             }
         }
 
-        // POST api/<RepliesController>/1
-        [HttpPost("like")]
-        public IActionResult LikeReply([FromBody] Like model)
+        // PUT: api/<RepliesController>/like/{userId}/{replyId}
+        [HttpPut("like/{userId}/{replyId}")]
+        public async Task<IActionResult> LikeReply(string userId, long replyId)
         {
-            try
-            {
-                if(model.PostId == null && model.ReplyId != null)
-                {
-                    _context.Likes.Add(model);
-                    _context.SaveChanges();
-                    return Ok(new { message = "Successfully liked reply." });
-                }
-                
+            var like = await _context.Likes.FirstOrDefaultAsync(l => l.ReplyId == replyId && l.UserId == userId);
 
-                return BadRequest(new { message = "PostId must be null and ReplyId must have a value." });
-            }
-            catch (Exception e)
+            if (like == null)
             {
-                return BadRequest(new { message = e.ToString() });
+                // If the like doesn't exist, create it
+                like = new Like
+                {
+                    ReplyId = replyId,
+                    UserId = userId
+                };
+
+                _context.Likes.Add(like);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "User successfully liked the post." });
+            }
+            else
+            {
+                // If the like exists, remove it
+                _context.Likes.Remove(like);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "User successfully unliked the post." });
             }
         }
 
@@ -99,29 +105,6 @@ namespace Cinematica.API.Controllers
                 _context.SaveChangesAsync();
 
                 return Ok(new { message = "Successfully removed reply." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.ToString() });
-            }
-        }
-
-        // Post api/<RepliesController>/unlike
-        [HttpPost("unlike")]
-        public IActionResult UnlikeReply([FromBody] Like model)
-        {
-            try
-            {
-                // gets the like based on like_id and checks if the like is for a reply
-                var like = _context.Likes.Find(model.LikeId);
-                if (like.PostId == null && like.ReplyId != null)
-                {
-                    _context.Remove(like);
-                    _context.SaveChanges();
-                    return Ok(new { message = "Successfully unliked reply." });
-                }
-
-                return BadRequest(new { message = "The supplied like_id is not for a reply." });
             }
             catch (Exception e)
             {

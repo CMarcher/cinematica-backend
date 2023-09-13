@@ -186,11 +186,28 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // gets the movie ids that a user has
                 var movies = _context.UserMovies
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.MovieId });
+                                    .Select(p => p.MovieId)
+                                    .ToList();
 
-                return Ok(movies);
+                // creates a list of anonymous objects containg simple movie details to return to client
+                List<dynamic> simpleMoviesList = new List<dynamic>();
+
+                foreach (var movie in movies)
+                {
+                    var dbMovie = _context.Movies.Find(movie);
+
+                    simpleMoviesList.Add( new
+                    {
+                        Id = movie,
+                        Title = dbMovie.Title,
+                        ReleaseYear = dbMovie.ReleaseDate?.Year.ToString()
+                    });
+                }
+
+                return Ok(simpleMoviesList);
             }
             catch (Exception e)
             {
