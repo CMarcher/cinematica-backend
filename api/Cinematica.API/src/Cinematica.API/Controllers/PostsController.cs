@@ -40,22 +40,20 @@ namespace Cinematica.API.Controllers
             {
                 return NotFound();
             }
-            else
+
+            var postDetailsList = new List<PostDetails>();
+
+            foreach (var post in posts)
             {
-                var postDetailsList = new List<PostDetails>();
-
-                foreach (var post in posts)
+                var postDetails = await GetPost(post.PostId, userId);
+                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
                 {
-                    var postDetails = await GetPost(post.PostId, userId);
-                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                    {
-                        postDetailsList.Add(details);
-                    }
+                    postDetailsList.Add(details);
                 }
-
-                // Return the paginated list of PostDetails
-                return Ok(postDetailsList);
             }
+
+            // Return the paginated list of PostDetails
+            return Ok(postDetailsList);
         }
 
         // GET: api/<PostsController>/following/{userId}/{page}
@@ -80,22 +78,20 @@ namespace Cinematica.API.Controllers
             {
                 return NotFound();
             }
-            else
+
+            var postDetailsList = new List<PostDetails>();
+
+            foreach (var post in posts)
             {
-                var postDetailsList = new List<PostDetails>();
-
-                foreach (var post in posts)
+                var postDetails = await GetPost(post.PostId, userId);
+                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
                 {
-                    var postDetails = await GetPost(post.PostId, userId);
-                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                    {
-                        postDetailsList.Add(details);
-                    }
+                    postDetailsList.Add(details);
                 }
-
-                // Return the paginated list of PostDetails
-                return Ok(postDetailsList);
             }
+
+            // Return the paginated list of PostDetails
+            return Ok(postDetailsList);
         }
 
         [HttpGet("search/{movieId}/{page}")]
@@ -114,22 +110,20 @@ namespace Cinematica.API.Controllers
             {
                 return NotFound();
             }
-            else
+
+            var postDetailsList = new List<PostDetails>();
+
+            foreach (var post in posts)
             {
-                var postDetailsList = new List<PostDetails>();
-
-                foreach (var post in posts)
+                var postDetails = await GetPost(post.PostId);
+                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
                 {
-                    var postDetails = await GetPost(post.PostId);
-                    if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                    {
-                        postDetailsList.Add(details);
-                    }
+                    postDetailsList.Add(details);
                 }
-
-                // Return the paginated list of PostDetails
-                return Ok(postDetailsList);
             }
+
+            // Return the paginated list of PostDetails
+            return Ok(postDetailsList);
         }
 
         // GET api/<PostsController>/5
