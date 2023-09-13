@@ -228,18 +228,18 @@ namespace Cinematica.API.Controllers
         }
 
         // PUT: api/<PostsController>/like/{userId}/{likeId}
-        [HttpPut("like/{userId}/{likeId}")]
-        public async Task<IActionResult> LikePost(long likeId, string userId)
+        [HttpPut("like/{userId}/{postId}")]
+        public async Task<IActionResult> LikePost(long postId, string userId)
         {
-            var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == likeId && l.UserId == userId);
+            var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
             if (like == null)
             {
                 // If the like doesn't exist, create it
                 like = new Like
                 {
-                    LikeId = likeId,
-                    PostId = likeId,
+                    LikeId = postId,
+                    PostId = postId,
                     UserId = userId
                 };
 
