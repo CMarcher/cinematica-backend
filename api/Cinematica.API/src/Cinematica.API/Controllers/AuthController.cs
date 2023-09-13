@@ -83,8 +83,16 @@ public class AuthController : ControllerBase
 
             AuthFlowResponse authResponse = await cognitoUser.StartWithSrpAuthAsync(authRequest);
             var result = authResponse.AuthenticationResult;
+            // add user id to the database
 
-            return Ok(new { idToken = result.IdToken, accessToken = result.AccessToken, refreshToken = result.RefreshToken });
+            var getRequest = new AdminGetUserRequest()
+            {
+                UserPoolId = APP_CONFIG["UserPoolId"],
+                Username = model.Username,
+            };
+            var user = await cognitoIdClient.AdminGetUserAsync(getRequest);
+
+            return Ok(new { user_id = user.UserAttributes.ToArray()[0].Value, accessToken = result.AccessToken, refreshToken = result.RefreshToken });
         }
         catch (UserNotConfirmedException)
         {

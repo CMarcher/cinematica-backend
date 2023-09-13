@@ -120,7 +120,7 @@ namespace Cinematica.API.Controllers
             {
                 var followers = _context.UserFollowers
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.FollowerId });
+                                    .Select(p => new { p.FollowerId, _helper.GetCognitoUser(p.FollowerId).Result.Username });
 
                 return Ok(followers);
             }
@@ -138,7 +138,7 @@ namespace Cinematica.API.Controllers
             {
                 var following = _context.UserFollowers
                                     .Where(u => u.FollowerId.Contains(id))
-                                    .Select(p => new { p.UserId });
+                                    .Select(p => new { p.UserId, _helper.GetCognitoUser(p.UserId).Result.Username });
 
                 return Ok(following);
             }
