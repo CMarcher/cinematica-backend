@@ -127,10 +127,10 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<PostsController>/5
-        [HttpGet("{id}/{userId?}")]
-        public async Task<IActionResult> GetPost(long id, string? userId = null)
+        [HttpGet("{postId}/{userId?}")]
+        public async Task<IActionResult> GetPost(long postId, string? userId = null)
         {
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _context.Posts.FindAsync(postId);
             var youLike = false;
 
             if (post == null)
@@ -138,17 +138,17 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
 
-            var commentsCount = await _context.Replies.CountAsync(r => r.PostId == id);
-            var likesCount = await _context.Likes.CountAsync(l => l.PostId == id);
+            var commentsCount = await _context.Replies.CountAsync(r => r.PostId == postId);
+            var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
             if (userId != null)
             {
-                youLike = await _context.Likes.AnyAsync(l => l.PostId == id && l.UserId == userId);
+                youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
             }
             
 
             // Get the movies for the post
             var movies = await _context.MovieSelections
-                .Where(m => m.PostId == id)
+                .Where(m => m.PostId == postId)
                 .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                 .ToListAsync();
 
@@ -163,6 +163,49 @@ namespace Cinematica.API.Controllers
 
             return Ok(postDetails);
         }
+
+        [HttpGet("{postId}/replies/{page}")]
+        public async Task<IActionResult> GetReplies(long postId, int page = 1, string? userId = null)
+        {
+            // Get the "page" of replies for the post
+            var replies = await _context.Replies
+                .Where(r => r.PostId == postId) // Filter by post ID
+                .OrderByDescending(r => r.CreatedAt) // Order by creation date
+                .Skip((page - 1) * 10) // Skip the replies before the current page
+                .Take(10) // Take only the replies of the current page
+                .ToListAsync();
+
+            if (replies == null)
+            {
+                return NotFound();
+            }
+
+            var replyDetailsList = new List<ReplyDetails>();
+
+            foreach (var reply in replies)
+            {
+                var youLike = false;
+                if (userId != null)
+                {
+                    youLike = await _context.Likes.AnyAsync(l => l.ReplyId == reply.ReplyId && l.UserId == userId);
+                }
+
+                var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == reply.ReplyId);
+
+                var replyDetails = new ReplyDetails
+                {
+                    Reply = reply,
+                    LikesCount = likesCount,
+                    YouLike = youLike
+                };
+
+                replyDetailsList.Add(replyDetails);
+            }
+
+            // Return the paginated list of ReplyDetails
+            return Ok(replyDetailsList);
+        }
+
 
         // POST api/<PostsController>
         [HttpPost]
@@ -202,8 +245,8 @@ namespace Cinematica.API.Controllers
             return Ok(newPost);
         }
 
-        // PUT: api/<PostsController>/{id}
-        [HttpPut("{id}")]
+        // PUT: api/<PostsController>/{postId}
+        [HttpPut("{postId}")]
         public async Task<IActionResult> UpdatePost(long id, [FromForm] Post updatedPost, [FromForm] IFormFile? imageFile = null, [FromForm] int[]? movieIds = null)
         {
             if (id != updatedPost.PostId)
@@ -261,7 +304,7 @@ namespace Cinematica.API.Controllers
 
 
         // DELETE api/<PostsController>/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(long id)
         {
             var post = await _context.Posts.FindAsync(id);
