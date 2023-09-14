@@ -37,7 +37,7 @@ namespace Cinematica.API.Models.Database
         }
 
         //Function to Map DBMovie to DisplayMovie
-        public static DisplayMovie toDisplayMovie(DBMovie movie, DataContext _context)
+        public static DisplayMovie ToDisplayMovie(DBMovie movie, DataContext _context)
         {
             var studioList = _context.MovieStudios
                 .Where(ms => ms.MovieId == movie.MovieId)

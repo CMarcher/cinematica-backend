@@ -118,10 +118,10 @@ public class MoviesController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Return DisplayMovie
-            return Ok(DBMovie.toDisplayMovie(newMovie, _context));
+            return Ok(DBMovie.ToDisplayMovie(newMovie, _context));
         }
 
-        return Ok(DBMovie.toDisplayMovie(checkMovie, _context));
+        return Ok(DBMovie.ToDisplayMovie(checkMovie, _context));
     }
 
     [HttpGet("withPosts/{searchTerm}")]

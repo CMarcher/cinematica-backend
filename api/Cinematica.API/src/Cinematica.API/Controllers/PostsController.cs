@@ -130,41 +130,37 @@ namespace Cinematica.API.Controllers
         [HttpGet("{postId}")]
         public async Task<IActionResult> GetPost(long postId, string? userId = null)
         {
-            var post = await _context.Posts.FindAsync(postId);
-            var youLike = false;
-
+            var post = await _context.Posts
+                .FindAsync(postId);
+            
             if (post == null)
             {
                 return NotFound();
             }
-
+            
+            var youLike = false;
+            //Get number of replies attached to post
             var commentsCount = await _context.Replies.CountAsync(r => r.PostId == postId);
+            //Get count of likes
             var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
+            //Get if logged in user likes this post
             if (userId != null)
             {
                 youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
             }
-            //Get user details
-            var user = await _context.Users.FindAsync(post.UserId);
-
             // Get the movies for the post
             var movies = await _context.MovieSelections
                 .Where(m => m.PostId == postId)
                 .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                 .ToListAsync();
 
-            var postDetails = new PostDetails
-            {
-                Post = post,
-                UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
-                CommentsCount = commentsCount,
-                LikesCount = likesCount,
-                Movies = movies,
-                YouLike = youLike
-            };
+            var postsDetails = Post.ConvertDetails(post, _context);
+            postsDetails.CommentsCount = commentsCount;
+            postsDetails.LikesCount = likesCount;
+            postsDetails.YouLike = youLike;
+            postsDetails.Movies = movies;
 
-            return Ok(postDetails);
+            return Ok(postsDetails);
         }
 
         [HttpGet("{postId}/replies/{page}")]
