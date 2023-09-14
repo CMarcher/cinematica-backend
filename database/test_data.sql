@@ -1,19 +1,36 @@
-INSERT INTO users (user_id) VALUES 
+INSERT INTO users (user_id, user_name) VALUES 
 	-- adds jeffery
-	('a33c0775-1406-4cc3-81ec-16151ecc4ade'),
+	('a33c0775-1406-4cc3-81ec-16151ecc4ade', 'jeffery'),
 	-- adds david
-	('93cfcbd6-54b6-4961-bec5-0cf6e0a81917'),
+	('93cfcbd6-54b6-4961-bec5-0cf6e0a81917', 'david'),
 	-- adds test
-	('e8f2aa40-b1a8-46f2-81c3-4e0dbc3e4f9d');
+	('e8f2aa40-b1a8-46f2-81c3-4e0dbc3e4f9d', 'test');
 
 -- Run this block first and check the post_id to put into replies INSERT statement.
-INSERT INTO posts (user_id, body) VALUES
-	('93cfcbd6-54b6-4961-bec5-0cf6e0a81917', 'testing hello');
-select * from posts;
-
+do $$
+ declare 
+  counter integer := 1;
+ begin
+  while counter <= 15 loop
+    INSERT INTO posts (user_id, body) VALUES
+	('a33c0775-1406-4cc3-81ec-16151ecc4ade', CONCAT('test', counter));
+   counter := counter + 1;
+  end loop;
+ end$$;
+ 
+select * from posts
 -- Run this block to insert a reply and get reply_id to put into likes INSERT
-INSERT INTO replies (user_id, post_id, body) VALUES
-	('93cfcbd6-54b6-4961-bec5-0cf6e0a81917', 1, 'testing hello2');
+do $$
+ declare 
+  counter integer := 1;
+ begin
+  while counter <= 15 loop
+    INSERT INTO replies (user_id, post_id, body) VALUES
+	('93cfcbd6-54b6-4961-bec5-0cf6e0a81917', 1, CONCAT('reply_test', counter));
+   counter := counter + 1;
+  end loop;
+ end$$;
+
 select * from replies;
 
 -- Use reply_id and post_id found in previous statements
