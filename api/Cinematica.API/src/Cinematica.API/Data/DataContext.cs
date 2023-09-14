@@ -312,6 +312,7 @@ public partial class DataContext : DbContext
                 .HasColumnName("user_id");
 
             entity.Property(e => e.UserName)
+                .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("user_name");
 

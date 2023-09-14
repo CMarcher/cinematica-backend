@@ -144,7 +144,8 @@ namespace Cinematica.API.Controllers
             {
                 youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
             }
-            
+            //Get user details
+            var user = await _context.Users.FindAsync(post.UserId);
 
             // Get the movies for the post
             var movies = await _context.MovieSelections
@@ -155,10 +156,12 @@ namespace Cinematica.API.Controllers
             var postDetails = new PostDetails
             {
                 Post = post,
+                UserName = user.UserName,
+                ProfilePicture = user.ProfilePicture,
                 CommentsCount = commentsCount,
                 LikesCount = likesCount,
                 Movies = movies,
-                youLike = youLike
+                YouLike = youLike
             };
 
             return Ok(postDetails);
@@ -195,6 +198,8 @@ namespace Cinematica.API.Controllers
                 var replyDetails = new ReplyDetails
                 {
                     Reply = reply,
+                    UserName = reply.User.UserName,
+                    ProfilePicture = reply.User.ProfilePicture,
                     LikesCount = likesCount,
                     YouLike = youLike
                 };
@@ -209,31 +214,22 @@ namespace Cinematica.API.Controllers
 
         // POST api/<PostsController>
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromBody] Post newPost, [FromBody] int[] movieIds, [FromBody] IFormFile? imageFile = null)
+        public async Task<IActionResult> AddPost([FromBody] AddPostModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Upload the image file and get the filename
-            if (imageFile != null)
-            {
-                var fileName = await _helper.UploadFile(imageFile, _postFiles);
-
-                // Set the Image property of the new post
-                newPost.Image = fileName;
-            }
-
-            _context.Posts.Add(newPost);
+            _context.Posts.Add(model.NewPost);
             await _context.SaveChangesAsync();
 
             // Associate movies with the post
-            foreach (var movieId in movieIds)
+            foreach (var movieId in model.MovieIds)
             {
                 var movieSelection = new MovieSelection
                 {
-                    PostId = newPost.PostId,
+                    PostId = model.NewPost.PostId,
                     MovieId = movieId
                 };
 
@@ -242,8 +238,30 @@ namespace Cinematica.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(newPost);
+            return Ok(model.NewPost);
         }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadPostImage(IFormFile imageFile)
+        {
+            if (imageFile == null)
+            {
+                return BadRequest(new { message = "No file uploaded." });
+            }
+
+            try
+            {
+                var fileName = await _helper.UploadFile(imageFile, "posts");
+
+                // Return the new filename
+                return Ok(new { FileName = fileName });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
 
         // PUT: api/<PostsController>/{postId}
         [HttpPut("{postId}")]
@@ -365,6 +383,12 @@ namespace Cinematica.API.Controllers
         private async Task<bool> PostExists(long id)
         {
             return await _context.Posts.AnyAsync(e => e.PostId == id);
+        }
+
+        public class AddPostModel
+        {
+            public Post NewPost { get; set; }
+            public int[] MovieIds { get; set; }
         }
     }
 }
