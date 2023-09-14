@@ -311,6 +311,10 @@ public partial class DataContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("user_id");
 
+            entity.Property(e => e.UserName)
+                .HasMaxLength(255)
+                .HasColumnName("user_name");
+
             entity.Property(e => e.CoverPicture)
                 .HasMaxLength(255)
                 .HasColumnName("cover_picture");

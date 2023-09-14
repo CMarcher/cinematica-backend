@@ -124,11 +124,12 @@ public class MoviesController : ControllerBase
         return Ok(DBMovie.toDisplayMovie(checkMovie, _context));
     }
 
-    [HttpGet("withPosts")]
-    public async Task<IActionResult> GetMoviesWithPosts()
+    [HttpGet("withPosts/{searchTerm}")]
+    public async Task<IActionResult> GetMoviesWithPosts(string searchTerm)
     {
-        // Get the movies that have posts about them
+        // Get the movies that have posts about them and match the search term
         var movies = await _context.MovieSelections
+            .Where(m => m.Movie.Title.Contains(searchTerm)) // Filter by movie title
             .Select(m => m.Movie) // Select the associated movies
             .Distinct() // Remove duplicates
             .ToListAsync();
