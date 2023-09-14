@@ -209,7 +209,7 @@ namespace Cinematica.API.Controllers
 
         // POST api/<PostsController>
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] Post newPost, [FromForm] int[] movieIds, [FromForm] IFormFile? imageFile = null)
+        public async Task<IActionResult> AddPost([FromBody] Post newPost, [FromBody] int[] movieIds, [FromBody] IFormFile? imageFile = null)
         {
             if (!ModelState.IsValid)
             {
