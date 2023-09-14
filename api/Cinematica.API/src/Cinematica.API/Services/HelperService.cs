@@ -79,7 +79,7 @@ public class HelperService : IHelperService
     {
         ListUsersRequest listUsersRequest = new ListUsersRequest
         {
-            UserPoolId = _config["UserPoolId"],
+            UserPoolId = _config["AWS:UserPoolId"],
             Filter = "email = \"" + emailAddress + "\""
         };
 
@@ -101,7 +101,7 @@ public class HelperService : IHelperService
     {
         ListUsersRequest listUsersRequest = new ListUsersRequest
         {
-            UserPoolId = _config["UserPoolId"],
+            UserPoolId = _config["AWS:UserPoolId"],
             Filter = "sub = \"" + id + "\""
         };
 

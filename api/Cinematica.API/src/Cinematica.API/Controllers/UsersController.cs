@@ -43,20 +43,21 @@ namespace Cinematica.API.Controllers
                 var follower_count = _context.UserFollowers.Count(u => u.UserId == id);
                 var following_count = _context.UserFollowers.Count(u => u.FollowerId == id);
 
-                return Ok(new { 
+                return Ok(new
+                {
                     id = id,
                     username = databaseUser.UserName,
                     profile_picture = databaseUser.ProfilePicture,
                     cover_picture = databaseUser.CoverPicture,
-                    follower_count = follower_count ,
+                    follower_count = follower_count,
                     following_count = following_count,
                 });
             }
-            catch(UserNotFoundException)
+            catch (UserNotFoundException)
             {
                 return BadRequest(new { message = "User not found." });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { message = e.ToString() });
             }
@@ -181,7 +182,7 @@ namespace Cinematica.API.Controllers
                 {
                     var dbMovie = _context.Movies.Find(movie);
 
-                    simpleMoviesList.Add( new
+                    simpleMoviesList.Add(new
                     {
                         Id = movie,
                         Title = dbMovie.Title,
@@ -206,11 +207,41 @@ namespace Cinematica.API.Controllers
                 var posts = _context.Posts
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(p => p.CreatedAt)
-                                    .Skip((page - 1) * 10)     
-                                    .Select(p => new { p.PostId, p.Body, p.CreatedAt, p.isSpoiler, p.Image })
-                                    .Take(10);
+                                    .Skip((page - 1) * 10)
+                                    .Select(p => new { p.PostId, p.Body, p.CreatedAt, p.Image, p.isSpoiler })
+                                    .Take(10)
+                                    .ToList();
 
-                return Ok(posts);
+                // creates a list of anonymous objects to store the replies to return to client
+                List<dynamic> postsList = new List<dynamic>();
+
+                foreach (var post in posts)
+                {
+                    var likesCount = _context.Likes.Count(l => l.PostId == post.PostId);
+                    var youLike = _context.Likes.Any(l => l.PostId == post.PostId && l.UserId == id);
+                    var commentsCount = _context.Replies.Count(r => r.PostId == post.PostId);
+
+                    // Get the movies for the post
+                    var movies = _context.MovieSelections
+                        .Where(m => m.PostId == post.PostId)
+                        .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                        .ToList();
+
+                    postsList.Add(new
+                    {
+                        PostId = post.PostId,
+                        Body = post.Body,
+                        Image = post.Image,
+                        IsSpoiler = post.isSpoiler,
+                        Movies = movies,
+                        CreatedAt = post.CreatedAt,
+                        LikesCount = likesCount,
+                        CommentsCount = commentsCount,
+                        YouLike = youLike
+                    });
+                }
+
+                return Ok(postsList);
             }
             catch (Exception e)
             {
@@ -219,37 +250,39 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<UsersController>/replies/id
-        [HttpGet("replies/{id}/{page}")]
+        [HttpGet("replies/{id}/{page}/")]
         public IActionResult GetUserReplies(string id, int page)
         {
             try
             {
-                var replyIds = _context.Replies
+                var replies = _context.Replies
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(p => p.CreatedAt)
                                     .Skip((page - 1) * 10)
-                                    .Select(r => r.ReplyId )
+                                    .Select(r => new { r.ReplyId, r.PostId, r.Body, r.CreatedAt })
                                     .Take(10)
                                     .ToList();
 
                 // creates a list of anonymous objects to store the replies to return to client
-                List<dynamic> replies = new List<dynamic>();
+                List<dynamic> repliesList = new List<dynamic>();
 
-                foreach (var rid in replyIds)
+                foreach (var reply in replies)
                 {
-                    var reply = _context.Replies.Find(rid);
-                    var likesCount = _context.Likes.Count(l => l.ReplyId == rid);
+                    var likesCount = _context.Likes.Count(l => l.ReplyId == reply.ReplyId);
+                    var youLike = _context.Likes.Any(l => l.ReplyId == reply.ReplyId && l.UserId == id);
 
-                    replies.Add(new
+
+                    repliesList.Add(new
                     {
-                        ReplyId = id,
+                        ReplyId = reply.ReplyId,
                         PostId = reply.PostId,
                         Body = reply.Body,
                         CreatedAt = reply.CreatedAt,
-                        Likes = likesCount
+                        LikesCount = likesCount,
+                        YouLike = youLike
                     });
                 }
-                return Ok(replies);
+                return Ok(repliesList);
             }
             catch (Exception e)
             {
