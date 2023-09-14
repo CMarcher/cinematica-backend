@@ -247,7 +247,7 @@ namespace Cinematica.API.Controllers
 
             try
             {
-                var fileName = await _helper.UploadFile(imageFile, "posts");
+                var fileName = await _helper.UploadFile(imageFile, _postFiles);
 
                 // Return the new filename
                 return Ok(new { FileName = fileName });
