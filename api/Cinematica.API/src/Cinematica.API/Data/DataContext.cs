@@ -119,7 +119,7 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<MovieSelection>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(m=>new{m.MovieId, m.PostId});
 
             entity.ToTable("movie_selections");
 

@@ -18,17 +18,5 @@ namespace Cinematica.API.Models.Database
         public bool isSpoiler { get; set; }
 
         public virtual User User { get; set; }
-
-        public static PostDetails ConvertDetails(Post post, DataContext _context)
-        {
-            var user = _context.Users.FindAsync(post.UserId).Result;
-
-            return new PostDetails()
-            {
-                Post = post,
-                UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
-            };
-        }
     }
 }

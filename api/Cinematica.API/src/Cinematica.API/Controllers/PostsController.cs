@@ -154,13 +154,18 @@ namespace Cinematica.API.Controllers
                 .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                 .ToListAsync();
 
-            var postsDetails = Post.ConvertDetails(post, _context);
-            postsDetails.CommentsCount = commentsCount;
-            postsDetails.LikesCount = likesCount;
-            postsDetails.YouLike = youLike;
-            postsDetails.Movies = movies;
+            var user = await _context.Users.FindAsync(post.UserId);
 
-            return Ok(postsDetails);
+            return Ok(new PostDetails()
+            {
+                Post = post,
+                UserName = user.UserName,
+                ProfilePicture = user.ProfilePicture,
+                LikesCount = likesCount,
+                CommentsCount = commentsCount,
+                YouLike = youLike,
+                Movies = movies,
+            });
         }
 
         [HttpGet("{postId}/replies/{page}")]
@@ -205,22 +210,22 @@ namespace Cinematica.API.Controllers
 
         // POST api/<PostsController>
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromBody] AddPostModel model)
+        public async Task<IActionResult> AddPost([FromBody] AddPostModel postModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _context.Posts.Add(model.NewPost);
+            _context.Posts.Add(postModel.NewPost);
             await _context.SaveChangesAsync();
 
             // Associate movies with the post
-            foreach (var movieId in model.MovieIds)
+            foreach (var movieId in postModel.MovieIds)
             {
                 var movieSelection = new MovieSelection
                 {
-                    PostId = model.NewPost.PostId,
+                    PostId = postModel.NewPost.PostId,
                     MovieId = movieId
                 };
 
@@ -229,7 +234,7 @@ namespace Cinematica.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(model.NewPost);
+            return Ok(postModel);
         }
 
         [HttpPost("upload")]
