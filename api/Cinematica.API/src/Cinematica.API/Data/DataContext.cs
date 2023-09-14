@@ -236,12 +236,6 @@ public partial class DataContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("user_id");
 
-            entity.HasOne(d => d.User)
-                .WithMany(p => p.Posts)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("posts_user_id_fkey");
-
             entity.HasKey(e => e.PostId)
                 .HasName("posts_pkey");
         });
@@ -276,12 +270,6 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.PostId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("replies_parent_id_fkeys");
-
-            entity.HasOne(d => d.User)
-                .WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("replies_user_id_fkey");
 
             entity.HasKey(e => e.ReplyId)
                 .HasName("replies_pkey");

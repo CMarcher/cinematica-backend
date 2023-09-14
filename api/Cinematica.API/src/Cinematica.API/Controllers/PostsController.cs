@@ -191,14 +191,9 @@ namespace Cinematica.API.Controllers
 
                 var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == reply.ReplyId);
 
-                var replyDetails = new ReplyDetails
-                {
-                    Reply = reply,
-                    UserName = reply.User.UserName,
-                    ProfilePicture = reply.User.ProfilePicture,
-                    LikesCount = likesCount,
-                    YouLike = youLike
-                };
+                var replyDetails = Reply.ConvertDetails(reply, _context);
+                replyDetails.LikesCount = likesCount;
+                replyDetails.YouLike = youLike;
 
                 replyDetailsList.Add(replyDetails);
             }
@@ -258,85 +253,26 @@ namespace Cinematica.API.Controllers
             }
         }
 
-
-        // PUT: api/<PostsController>/{postId}
-        [HttpPut("{postId}")]
-        public async Task<IActionResult> UpdatePost(long id, [FromForm] Post updatedPost, [FromForm] IFormFile? imageFile = null, [FromForm] int[]? movieIds = null)
-        {
-            if (id != updatedPost.PostId)
-            {
-                return BadRequest();
-            }
-
-            // Upload the image file and get the filename
-            if (imageFile != null)
-            {
-                var fileName = await _helper.UploadFile(imageFile, _postFiles);
-
-                // Set the Image property of the updated post
-                updatedPost.Image = fileName;
-            }
-
-            _context.Entry(updatedPost).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PostExists(id).Result)
-                {
-                    return NotFound();
-                }
-
-                throw;
-            }
-
-            // Update the movies associated with the post
-            if (movieIds == null) return NoContent();
-            // Remove existing associations
-            var existingSelections = _context.MovieSelections.Where(m => m.PostId == id);
-            _context.MovieSelections.RemoveRange(existingSelections);
-
-            // Add new associations
-            foreach (var movieId in movieIds)
-            {
-                var movieSelection = new MovieSelection
-                {
-                    PostId = updatedPost.PostId,
-                    MovieId = movieId
-                };
-
-                _context.MovieSelections.Add(movieSelection);
-            }
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-
         // DELETE api/<PostsController>/5
         [HttpDelete("{postId}")]
-        public async Task<IActionResult> DeletePost(long id)
+        public async Task<IActionResult> DeletePost(long postId)
         {
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _context.Posts.FindAsync(postId);
             if (post == null)
             {
                 return NotFound();
             }
 
             // Remove the associated movie selections
-            var movieSelections = _context.MovieSelections.Where(m => m.PostId == id);
+            var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
             _context.MovieSelections.RemoveRange(movieSelections);
 
             // Remove the associated replies
-            var replies = _context.Replies.Where(r => r.PostId == id);
+            var replies = _context.Replies.Where(r => r.PostId == postId);
             _context.Replies.RemoveRange(replies);
 
             // Remove the associated likes
-            var likes = _context.Likes.Where(l => l.PostId == id);
+            var likes = _context.Likes.Where(l => l.PostId == postId);
             _context.Likes.RemoveRange(likes);
 
             // Remove the post
@@ -373,12 +309,6 @@ namespace Cinematica.API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        // Helper to see if a Post exists
-        private async Task<bool> PostExists(long id)
-        {
-            return await _context.Posts.AnyAsync(e => e.PostId == id);
         }
 
         public class AddPostModel

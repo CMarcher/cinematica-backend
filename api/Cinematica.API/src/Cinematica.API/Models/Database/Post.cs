@@ -21,10 +21,13 @@ namespace Cinematica.API.Models.Database
 
         public static PostDetails ConvertDetails(Post post, DataContext _context)
         {
+            var user = _context.Users.FindAsync(post.UserId).Result;
+
             return new PostDetails()
             {
                 Post = post,
-                UserName = "name goes here"
+                UserName = user.UserName,
+                ProfilePicture = user.ProfilePicture,
             };
         }
     }
