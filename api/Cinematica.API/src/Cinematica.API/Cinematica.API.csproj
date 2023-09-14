@@ -21,6 +21,7 @@
 		<PackageReference Include="Amazon.AspNetCore.Identity.Cognito" Version="3.0.1" />
 		<PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="8.1.0" />
 		<PackageReference Include="AWSSDK.S3" Version="3.7.203.11" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.cors" Version="2.2.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.10">

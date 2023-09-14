@@ -8,6 +8,7 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
+using Microsoft.AspNetCore.Authorization;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -18,26 +19,15 @@ namespace Cinematica.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IConfiguration APP_CONFIG;
         private readonly IHelperService _helper;
         private DataContext _context;
-        private AmazonCognitoIdentityProviderClient cognitoIdClient;
         private readonly string _usersFiles;
 
         public UsersController(IConfiguration config, IHelperService helperService, DataContext context, string myImages)
         {
-            APP_CONFIG = config.GetSection("AWS");
-
             _context = context;
             _helper = helperService;
             _usersFiles = Path.Combine(myImages, "users");
-
-            cognitoIdClient = new AmazonCognitoIdentityProviderClient
-            (
-                APP_CONFIG["AccessKeyId"],
-                APP_CONFIG["AccessSecretKey"],
-                RegionEndpoint.GetBySystemName(APP_CONFIG["Region"])
-            );
         }
 
         // GET api/Users/id
@@ -46,9 +36,6 @@ namespace Cinematica.API.Controllers
         {
             try
             {
-                // get user from cognito
-                var cognitoUser = await _helper.GetCognitoUser(id);
-
                 // get user from postgre database
                 var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
 
@@ -58,7 +45,7 @@ namespace Cinematica.API.Controllers
 
                 return Ok(new { 
                     id = id,
-                    username = cognitoUser.Username,
+                    username = databaseUser.UserName,
                     profile_picture = databaseUser.ProfilePicture,
                     cover_picture = databaseUser.CoverPicture,
                     follower_count = follower_count ,
@@ -81,12 +68,7 @@ namespace Cinematica.API.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                _context.Add(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId});
+                _context.Add(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
                 _context.SaveChanges();
                 return Ok(new { message = "Follow success." });
             }
@@ -192,7 +174,7 @@ namespace Cinematica.API.Controllers
                                     .Select(p => p.MovieId)
                                     .ToList();
 
-                // creates a list of anonymous objects containg simple movie details to return to client
+                // creates a list of anonymous objects to store simple movie details to return to client
                 List<dynamic> simpleMoviesList = new List<dynamic>();
 
                 foreach (var movie in movies)
@@ -225,7 +207,7 @@ namespace Cinematica.API.Controllers
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(p => p.CreatedAt)
                                     .Skip((page - 1) * 10)     
-                                    .Select(p => new { p.PostId })
+                                    .Select(p => new { p.PostId, p.Body, p.CreatedAt, p.isSpoiler, p.Image })
                                     .Take(10);
 
                 return Ok(posts);
@@ -242,13 +224,31 @@ namespace Cinematica.API.Controllers
         {
             try
             {
-                var replies = _context.Replies
+                var replyIds = _context.Replies
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(p => p.CreatedAt)
                                     .Skip((page - 1) * 10)
-                                    .Select(r => new { r.ReplyId })
-                                    .Take(10);
+                                    .Select(r => r.ReplyId )
+                                    .Take(10)
+                                    .ToList();
 
+                // creates a list of anonymous objects to store the replies to return to client
+                List<dynamic> replies = new List<dynamic>();
+
+                foreach (var rid in replyIds)
+                {
+                    var reply = _context.Replies.Find(rid);
+                    var likesCount = _context.Likes.Count(l => l.ReplyId == rid);
+
+                    replies.Add(new
+                    {
+                        ReplyId = id,
+                        PostId = reply.PostId,
+                        Body = reply.Body,
+                        CreatedAt = reply.CreatedAt,
+                        Likes = likesCount
+                    });
+                }
                 return Ok(replies);
             }
             catch (Exception e)
@@ -268,9 +268,50 @@ namespace Cinematica.API.Controllers
                                     .OrderByDescending(l => l.LikeId)
                                     .Skip((page - 1) * 10)
                                     .Select(p => new { p.LikeId, p.PostId, p.ReplyId })
-                                    .Take(10);
+                                    .Take(10)
+                                    .ToList();
 
-                return Ok(likes);
+                // creates a list of anonymous objects to store the replies to return to client
+                List<dynamic> likedPosts = new List<dynamic>();
+
+                foreach (var like in likes)
+                {
+                    if (like.ReplyId != null)
+                    {
+                        var likedReply = _context.Replies.Find(like.ReplyId);
+                        var likesCount = _context.Likes.Count(l => l.ReplyId == like.ReplyId);
+                        var replyUser = _context.Users.Find(likedReply.UserId);
+
+                        likedPosts.Add(new
+                        {
+                            replyUser = replyUser.UserName,
+                            replyProfilePicture = replyUser.ProfilePicture,
+                            replyId = likedReply.ReplyId,
+                            replyBody = likedReply.Body,
+                            createdAt = likedReply.CreatedAt,
+                            likesCount = likesCount
+                        });
+                    }
+                    else
+                    {
+                        var likedPost = _context.Posts.Find(like.PostId);
+                        var likesCount = _context.Likes.Count(l => l.ReplyId == like.ReplyId);
+                        var postUser = _context.Users.Find(likedPost.UserId);
+
+                        likedPosts.Add(new
+                        {
+                            postUser = postUser.UserName,
+                            postProfilePicture = postUser.ProfilePicture,
+                            postId = likedPost.PostId,
+                            postBody = likedPost.Body,
+                            image = likedPost.Image,
+                            created_at = likedPost.CreatedAt,
+                            likesCount = likesCount
+                        });
+                    }
+                }
+
+                return Ok(likedPosts);
             }
             catch (Exception e)
             {
@@ -285,7 +326,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 var user = await _context.Users.FindAsync(model.UserId);
-                var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
+                var filepath = await _helper.UploadFile(model.File, _usersFiles);
                 user.ProfilePicture = filepath;
                 await _context.SaveChangesAsync();
 
@@ -304,7 +345,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 var user = await _context.Users.FindAsync(model.UserId);
-                var filepath = _helper.UploadFile(model.File, _usersFiles).Result;
+                var filepath = await _helper.UploadFile(model.File, _usersFiles);
                 user.CoverPicture = filepath;
                 await _context.SaveChangesAsync();
 

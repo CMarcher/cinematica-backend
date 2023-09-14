@@ -15,22 +15,16 @@ namespace Cinematica.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IConfiguration APP_CONFIG;
+    private readonly IConfiguration _config;
     private readonly IHelperService _helper;
     private DataContext _context;
-    private AmazonCognitoIdentityProviderClient cognitoIdClient;
+    private AmazonCognitoIdentityProviderClient _cognitoClient;
 
-    public AuthController(IConfiguration config, IHelperService helperService, DataContext context) {
-        APP_CONFIG = config.GetSection("AWS");
+    public AuthController(IConfiguration config, IHelperService helperService, DataContext context, AmazonCognitoIdentityProviderClient client) {
+        _config = config.GetSection("AWS");
         _context = context;
         _helper = helperService;
-
-        cognitoIdClient = new AmazonCognitoIdentityProviderClient
-        (
-            APP_CONFIG["AccessKeyId"], 
-            APP_CONFIG["AccessSecretKey"], 
-            RegionEndpoint.GetBySystemName(APP_CONFIG["Region"])
-        );
+        _cognitoClient = client;
     }
 
     // POST api/auth/register
@@ -43,12 +37,12 @@ public class AuthController : ControllerBase
                 // create and send registration request to cognito
                 var regRequest = new SignUpRequest
                 {
-                    ClientId = APP_CONFIG["AppClientId"],
+                    ClientId = _config["AppClientId"],
                     Username = model.Username,
                     Password = model.Password,
                     UserAttributes = { new AttributeType { Name = "email", Value = model.Email } }
                 };
-                var ret = await cognitoIdClient.SignUpAsync(regRequest);
+                var ret = await _cognitoClient.SignUpAsync(regRequest);
 
                 return Ok(new { message = "Registration successful." });
             }
@@ -73,8 +67,8 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var cognitoUserPool = new CognitoUserPool(APP_CONFIG["UserPoolId"], APP_CONFIG["AppClientId"], cognitoIdClient);
-            var cognitoUser = new CognitoUser(model.Username, APP_CONFIG["AppClientId"], cognitoUserPool, cognitoIdClient);
+            var cognitoUserPool = new CognitoUserPool(_config["UserPoolId"], _config["AppClientId"], _cognitoClient);
+            var cognitoUser = new CognitoUser(model.Username, _config["AppClientId"], cognitoUserPool, _cognitoClient);
         
             InitiateSrpAuthRequest authRequest = new InitiateSrpAuthRequest()
             {
@@ -87,12 +81,12 @@ public class AuthController : ControllerBase
 
             var getRequest = new AdminGetUserRequest()
             {
-                UserPoolId = APP_CONFIG["UserPoolId"],
+                UserPoolId = _config["UserPoolId"],
                 Username = model.Username,
             };
-            var user = await cognitoIdClient.AdminGetUserAsync(getRequest);
+            var user = await _cognitoClient.AdminGetUserAsync(getRequest);
 
-            return Ok(new { user_id = user.UserAttributes.ToArray()[0].Value, accessToken = result.AccessToken, refreshToken = result.RefreshToken });
+            return Ok(new { user_id = user.UserAttributes.ToArray()[0].Value, idToken = result.IdToken, refreshToken = result.RefreshToken });
         }
         catch (UserNotConfirmedException)
         {
@@ -118,20 +112,20 @@ public class AuthController : ControllerBase
         try {
             var regRequest = new ConfirmSignUpRequest
                 {
-                    ClientId = APP_CONFIG["AppClientId"],
+                    ClientId = _config["AppClientId"],
                     Username = model.Username,
                     ConfirmationCode = model.ConfirmationCode
                 };
 
-            var ret = await cognitoIdClient.ConfirmSignUpAsync(regRequest);
+            var ret = await _cognitoClient.ConfirmSignUpAsync(regRequest);
 
             // add user id to the database
             var getRequest = new AdminGetUserRequest()
             {
-                UserPoolId = APP_CONFIG["UserPoolId"],
+                UserPoolId = _config["UserPoolId"],
                 Username = model.Username,
             };
-            var newUser = await cognitoIdClient.AdminGetUserAsync(getRequest);
+            var newUser = await _cognitoClient.AdminGetUserAsync(getRequest);
             _context.Add(new User { UserId = newUser.UserAttributes.ToArray()[0].Value, ProfilePicture = null, CoverPicture = null, UserName = model.Username});
             _context.SaveChanges();
 
@@ -159,11 +153,11 @@ public class AuthController : ControllerBase
             var user = await _helper.FindUserByEmailAddress(email);
 
             if (user != null) {
-                var forgotPasswordResponse = await cognitoIdClient.ResendConfirmationCodeAsync
+                var forgotPasswordResponse = await _cognitoClient.ResendConfirmationCodeAsync
                 (
                     new ResendConfirmationCodeRequest 
                     { 
-                        ClientId = APP_CONFIG["AppClientId"],
+                        ClientId = _config["AppClientId"],
                         Username = user.Username
                     }
                 ); 
@@ -187,11 +181,11 @@ public class AuthController : ControllerBase
             var user = await _helper.FindUserByEmailAddress(email);
 
             if (user != null) {
-                var forgotPasswordResponse = await cognitoIdClient.ForgotPasswordAsync
+                var forgotPasswordResponse = await _cognitoClient.ForgotPasswordAsync
                 (
                     new ForgotPasswordRequest 
                     { 
-                        ClientId = APP_CONFIG["AppClientId"],
+                        ClientId = _config["AppClientId"],
                         Username = user.Username
                     }
                 ); 
@@ -221,9 +215,9 @@ public class AuthController : ControllerBase
         {
             var user = await _helper.FindUserByEmailAddress(model.Email);
             if(user != null) {
-                var response = await cognitoIdClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
+                var response = await _cognitoClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
                 {
-                    ClientId = APP_CONFIG["AppClientId"],
+                    ClientId = _config["AppClientId"],
                     Username = user.Username,
                     Password = model.Password,
                     ConfirmationCode = model.ConfirmationCode

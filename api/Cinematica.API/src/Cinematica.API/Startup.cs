@@ -8,6 +8,10 @@ using Cinematica.API.Data;
 using Cinematica.API.Models;
 using Cinematica.API.Services;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Amazon.AspNetCore.Identity.Cognito;
+using Microsoft.IdentityModel.Tokens;
+using Amazon.CognitoIdentityProvider;
 
 namespace Cinematica.API;
 
@@ -41,6 +45,10 @@ public class Startup
 
         services.AddDbContext<DataContext>();
 
+        // Add Cognito Identity Provider
+        AmazonCognitoIdentityProviderClient cognitoClient = new AmazonCognitoIdentityProviderClient();
+        services.AddSingleton(cognitoClient);
+
         // Removes null fields when sending JSON response
         services.AddMvc()
             .AddJsonOptions(options =>
@@ -48,6 +56,7 @@ public class Startup
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
 
+        // Add Cors
         services.AddCors(options => {
             options.AddPolicy("AllowReactFrontend",
                 builder => builder.WithOrigins("https://localhost:3000")
@@ -60,6 +69,23 @@ public class Startup
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinematica API", Version = "v1" });
             });
 
+        // Add authentication using Cognito tokens
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.Authority = Configuration["AWS:Authority"];
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = Configuration["AWS:Authority"],
+                ValidateAudience = false
+            };
+        });
+        
         services.AddScoped<IHelperService, HelperService>();
     }
 
@@ -91,6 +117,9 @@ public class Startup
         }
 
         app.UseHttpsRedirection();
+
+       
+        app.UseAuthentication();
 
         app.UseRouting();
 

@@ -17,19 +17,13 @@ public interface IHelperService
 
 public class HelperService : IHelperService
 {
-    private readonly IConfiguration APP_CONFIG;
-    private AmazonCognitoIdentityProviderClient cognitoIdClient;
+    private readonly IConfiguration _config;
+    private AmazonCognitoIdentityProviderClient _cognitoClient;
 
-    public HelperService(IConfiguration config)
+    public HelperService(IConfiguration config, AmazonCognitoIdentityProviderClient client)
     {
-        APP_CONFIG = config.GetSection("AWS");
-
-        cognitoIdClient = new AmazonCognitoIdentityProviderClient
-        (
-            APP_CONFIG["AccessKeyId"],
-            APP_CONFIG["AccessSecretKey"],
-            RegionEndpoint.GetBySystemName(APP_CONFIG["Region"])
-        );
+        _config = config;
+        _cognitoClient = client;
     }
 
     public async Task<string> DownloadFile(string url, string savePath)
@@ -85,11 +79,11 @@ public class HelperService : IHelperService
     {
         ListUsersRequest listUsersRequest = new ListUsersRequest
         {
-            UserPoolId = APP_CONFIG["UserPoolId"],
+            UserPoolId = _config["UserPoolId"],
             Filter = "email = \"" + emailAddress + "\""
         };
 
-        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+        var listUsersResponse = await _cognitoClient.ListUsersAsync(listUsersRequest);
 
         if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
         {
@@ -107,11 +101,11 @@ public class HelperService : IHelperService
     {
         ListUsersRequest listUsersRequest = new ListUsersRequest
         {
-            UserPoolId = APP_CONFIG["UserPoolId"],
+            UserPoolId = _config["UserPoolId"],
             Filter = "sub = \"" + id + "\""
         };
 
-        var listUsersResponse = await cognitoIdClient.ListUsersAsync(listUsersRequest);
+        var listUsersResponse = await _cognitoClient.ListUsersAsync(listUsersRequest);
 
         if (listUsersResponse.HttpStatusCode == HttpStatusCode.OK)
         {
