@@ -2,6 +2,7 @@ using Cinematica.API.Data;
 using Cinematica.API.Models.Database;
 using Cinematica.API.Models.Display;
 using Cinematica.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TMDbLib.Client;
@@ -15,7 +16,6 @@ namespace Cinematica.API.Controllers
         private readonly DataContext _context;
         private readonly IHelperService _helper;
 
-
         public RepliesController(DataContext context, IHelperService helperService)
         {
             _context = context;
@@ -24,10 +24,18 @@ namespace Cinematica.API.Controllers
 
         // POST api/<RepliesController>
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateReply([FromBody] Reply model)
         {
             try
             {
+                var tokenString = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+                if(!await _helper.CheckTokenSub(tokenString, model.UserId))
+                {
+                    return Unauthorized(new { message = "Sub in the IdToken doesn't match user id in request body." });
+                }
+
                 _context.Replies.Add(model);
                 await _context.SaveChangesAsync();
 

@@ -53,6 +53,8 @@ public class Startup
         AmazonCognitoIdentityProviderClient cognitoClient = new AmazonCognitoIdentityProviderClient();
         services.AddSingleton(cognitoClient);
 
+        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
         // Removes null fields when sending JSON response
         services.AddMvc()
             .AddJsonOptions(options =>

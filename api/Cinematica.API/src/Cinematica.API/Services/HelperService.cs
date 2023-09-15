@@ -2,6 +2,7 @@
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Amazon;
 
@@ -13,6 +14,7 @@ public interface IHelperService
     Task<string> DownloadFile(string url, string savePath);
     Task<UserType?> FindUserByEmailAddress(string emailAddress);
     Task<UserType?> GetCognitoUser(string id);
+    Task<bool> CheckTokenSub(string tokenString, string userId);
 }
 
 public class HelperService : IHelperService
@@ -116,5 +118,13 @@ public class HelperService : IHelperService
         {
             return null;
         }
+    }
+
+    public async Task<bool> CheckTokenSub(string tokenString, string userId)
+    {
+        var token = new JwtSecurityToken(jwtEncodedString: tokenString);
+        string sub = token.Claims.First(c => c.Type == "sub").Value;
+
+        return sub.Equals(userId);
     }
 }
