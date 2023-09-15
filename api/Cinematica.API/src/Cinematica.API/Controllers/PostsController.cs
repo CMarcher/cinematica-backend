@@ -4,6 +4,7 @@ using Cinematica.API.Models.Display;
 using Cinematica.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TMDbLib.Client;
 
@@ -257,6 +258,8 @@ namespace Cinematica.API.Controllers
             var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
             if (user.ProfilePicture != null)
                 user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+            //append prefix to post image if not null
+            if (postModel.NewPost.Image != null) postModel.NewPost.Image = _imageSettings.ServeLocation + "posts/" + postModel.NewPost.Image;
             return Ok(new PostDetails
             {
                 Post = postModel.NewPost,
