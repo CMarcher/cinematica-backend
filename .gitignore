@@ -43,3 +43,5 @@ api\Cinematica.API\src\Cinematica.API\.vs
 *.csproj.user
 
 .idea
+*.jpg
+api/Cinematica.API/src/Cinematica.API/appsettings.Development.json
