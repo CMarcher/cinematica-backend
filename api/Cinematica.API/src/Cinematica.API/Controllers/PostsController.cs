@@ -141,16 +141,16 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
             
+            //append prefix to post image if not null
+            if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
+
             var youLike = false;
             //Get number of replies attached to post
             var commentsCount = await _context.Replies.CountAsync(r => r.PostId == postId);
             //Get count of likes
             var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
             //Get if logged in user likes this post
-            if (userId != null)
-            {
-                youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
-            }
+            if (userId != null) youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
             // Get the movies for the post
             var movies = await _context.MovieSelections
                 .Where(m => m.PostId == postId)
@@ -158,12 +158,13 @@ namespace Cinematica.API.Controllers
                 .ToListAsync();
 
             var user = await _context.Users.FindAsync(post.UserId);
-
+            if (user.ProfilePicture != null)
+                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
             return Ok(new PostDetails()
             {
                 Post = post,
                 UserName = user.UserName,
-                ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
+                ProfilePicture = user.ProfilePicture,
                 LikesCount = likesCount,
                 CommentsCount = commentsCount,
                 YouLike = youLike,
@@ -199,12 +200,13 @@ namespace Cinematica.API.Controllers
 
                 var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == reply.ReplyId);
                 var user = await _context.Users.FindAsync(reply.UserId);
-                
+                if (user.ProfilePicture != null)
+                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
                 replyDetailsList.Add(new ReplyDetails()
                 {
                     Reply = reply,
                     UserName = user.UserName,
-                    ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
+                    ProfilePicture = user.ProfilePicture,
                     LikesCount = likesCount,
                     YouLike = youLike
                 });
@@ -253,11 +255,13 @@ namespace Cinematica.API.Controllers
 
             //Convert to PostDetails model
             var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
+            if (user.ProfilePicture != null)
+                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
             return Ok(new PostDetails
             {
                 Post = postModel.NewPost,
                 UserName = user.UserName,
-                ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
+                ProfilePicture = user.ProfilePicture,
                 Movies = movies
             });
         }

@@ -69,12 +69,12 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/follow
         [HttpPost("follow")]
-        public IActionResult Follow([FromBody] UserFollower model)
+        public async Task<IActionResult> Follow([FromBody] UserFollower model)
         {
             try
             {
-                _context.Add(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
-                _context.SaveChanges();
+                await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
+                await _context.SaveChangesAsync();
                 return Ok(new { message = "Follow success." });
             }
             catch (Exception e)
@@ -85,12 +85,12 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/unfollow
         [HttpPost("unfollow")]
-        public IActionResult Unfollow([FromBody] UserFollower model)
+        public async Task<IActionResult> Unfollow([FromBody] UserFollower model)
         {
             try
             {
                 _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return Ok(new { message = "Unfollow success." });
             }
             catch (Exception e)
@@ -165,12 +165,12 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/add-movie
         [HttpPost("add-movie")]
-        public IActionResult AddMovie([FromBody] UserMovie model)
+        public async Task<IActionResult> AddMovie([FromBody] UserMovie model)
         {
             try
             {
-                _context.Add(model);
-                _context.SaveChanges();
+                await _context.AddAsync(model);
+                await _context.SaveChangesAsync();
                 return Ok(new { message = "Movie successfully added to user." });
             }
             catch (Exception e)
@@ -181,12 +181,12 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/remove-movie
         [HttpPost("remove-movie")]
-        public IActionResult RemoveMovie([FromBody] UserMovie model)
+        public async Task<IActionResult> RemoveMovie([FromBody] UserMovie model)
         {
             try
             {
                 _context.Remove(model);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return Ok(new { message = "Successfully removed movie from user." });
             }
             catch (Exception e)
@@ -197,15 +197,15 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/movies/id
         [HttpGet("movies/{id}")]
-        public IActionResult GetUserMovies(string id)
+        public async Task<IActionResult> GetUserMovies(string id)
         {
             try
             {
                 // gets the movie ids that a user has
-                var movies = _context.UserMovies
+                var movies = await _context.UserMovies
                                     .Where(u => u.UserId.Contains(id))
                                     .Select(p => p.MovieId)
-                                    .ToList();
+                                    .ToListAsync();
 
                 // creates a list of anonymous objects to store simple movie details to return to client
                 List<dynamic> simpleMoviesList = new List<dynamic>();
@@ -237,6 +237,8 @@ namespace Cinematica.API.Controllers
             var user = await _context.Users.FindAsync(userId);
 
             if (user == null) return BadRequest(new { message = "User such user" });
+            if (user.ProfilePicture != null)
+                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
 
             var posts = await _context.Posts
                         .Where(p => p.UserId.Contains(userId))
@@ -255,6 +257,9 @@ namespace Cinematica.API.Controllers
                 var likesCount = _context.Likes.Count(l => l.PostId == post.PostId);
                 var youLike = _context.Likes.Any(l => l.PostId == post.PostId && l.UserId == userId);
                 var commentsCount = _context.Replies.Count(r => r.PostId == post.PostId);
+
+                //append prefix to post image if not null
+                if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
 
                 // Get the movies for the post
                 var movies = _context.MovieSelections
@@ -279,17 +284,17 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/replies/id
         [HttpGet("replies/{id}/{page}/")]
-        public IActionResult GetUserReplies(string id, int page)
+        public async Task<IActionResult> GetUserReplies(string id, int page)
         {
             try
             {
-                var replies = _context.Replies
+                var replies = await _context.Replies
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(p => p.CreatedAt)
                                     .Skip((page - 1) * 10)
                                     .Select(r => new { r.ReplyId, r.PostId, r.Body, r.CreatedAt })
                                     .Take(10)
-                                    .ToList();
+                                    .ToListAsync();
 
                 // creates a list of anonymous objects to store the replies to return to client
                 List<dynamic> repliesList = new List<dynamic>();
@@ -298,7 +303,6 @@ namespace Cinematica.API.Controllers
                 {
                     var likesCount = _context.Likes.Count(l => l.ReplyId == reply.ReplyId);
                     var youLike = _context.Likes.Any(l => l.ReplyId == reply.ReplyId && l.UserId == id);
-
 
                     repliesList.Add(new
                     {
@@ -317,17 +321,17 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/replies/id
         [HttpGet("likes/{id}/{page}")]
-        public IActionResult GetUserLikes(string id, int page)
+        public async Task<IActionResult> GetUserLikes(string id, int page)
         {
             try
             {
-                var likes = _context.Likes
+                var likes = await _context.Likes
                                     .Where(u => u.UserId.Contains(id))
                                     .OrderByDescending(l => l.LikeId)
                                     .Skip((page - 1) * 10)
                                     .Select(p => new { p.LikeId, p.PostId, p.ReplyId })
                                     .Take(10)
-                                    .ToList();
+                                    .ToListAsync();
 
                 // creates a list of anonymous objects to store the replies to return to client
                 List<dynamic> likedPosts = new List<dynamic>();
@@ -336,9 +340,9 @@ namespace Cinematica.API.Controllers
                 {
                     if (like.ReplyId != null)
                     {
-                        var likedReply = _context.Replies.Find(like.ReplyId);
-                        var likesCount = _context.Likes.Count(l => l.ReplyId == like.ReplyId);
-                        var replyUser = _context.Users.Find(likedReply.UserId);
+                        var likedReply = await _context.Replies.FindAsync(like.ReplyId);
+                        var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
+                        var replyUser = await _context.Users.FindAsync(likedReply.UserId);
 
                         likedPosts.Add(new
                         {
@@ -352,9 +356,9 @@ namespace Cinematica.API.Controllers
                     }
                     else
                     {
-                        var likedPost = _context.Posts.Find(like.PostId);
-                        var likesCount = _context.Likes.Count(l => l.ReplyId == like.ReplyId);
-                        var postUser = _context.Users.Find(likedPost.UserId);
+                        var likedPost = await _context.Posts.FindAsync(like.PostId);
+                        var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
+                        var postUser = await _context.Users.FindAsync(likedPost.UserId);
 
                         likedPosts.Add(new
                         {
