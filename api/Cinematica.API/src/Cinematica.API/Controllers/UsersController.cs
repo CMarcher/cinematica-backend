@@ -229,12 +229,8 @@ namespace Cinematica.API.Controllers
 
                     postsList.Add(new
                     {
-                        PostId = post.PostId,
-                        Body = post.Body,
-                        Image = post.Image,
-                        IsSpoiler = post.isSpoiler,
+                        Post = post,
                         Movies = movies,
-                        CreatedAt = post.CreatedAt,
                         LikesCount = likesCount,
                         CommentsCount = commentsCount,
                         YouLike = youLike
@@ -274,10 +270,7 @@ namespace Cinematica.API.Controllers
 
                     repliesList.Add(new
                     {
-                        ReplyId = reply.ReplyId,
-                        PostId = reply.PostId,
-                        Body = reply.Body,
-                        CreatedAt = reply.CreatedAt,
+                        Reply = reply,
                         LikesCount = likesCount,
                         YouLike = youLike
                     });
