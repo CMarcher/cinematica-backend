@@ -29,6 +29,50 @@ namespace Cinematica.API.Controllers
             _postFiles = Path.Combine(_imageSettings.UploadLocation, "posts");
         }
 
+        // GET api/<PostsController>/5
+        [HttpGet("{postId}")]
+        public async Task<IActionResult> GetPost(long postId, string? userId = null)
+        {
+            var post = await _context.Posts
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.PostId == postId); ;
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            //append prefix to post image if not null
+            if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
+
+            var youLike = false;
+            //Get number of replies attached to post
+            var commentsCount = await _context.Replies.CountAsync(r => r.PostId == postId);
+            //Get count of likes
+            var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
+            //Get if logged in user likes this post
+            if (userId != null) youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
+            // Get the movies for the post
+            var movies = await _context.MovieSelections
+                .Where(m => m.PostId == postId)
+                .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                .ToListAsync();
+
+            var profilePicture = post.User.ProfilePicture;
+            if (profilePicture != null)
+                profilePicture = _imageSettings.ServeLocation + "users/" + profilePicture;
+            return Ok(new PostDetails()
+            {
+                Post = post,
+                UserName = post.User.UserName,
+                ProfilePicture = profilePicture,
+                LikesCount = likesCount,
+                CommentsCount = commentsCount,
+                YouLike = youLike,
+                Movies = movies,
+            });
+        }
+
         // GET: api/<PostsController>/all/{page}
         [HttpGet("all/{page}")]
         public async Task<IActionResult> GetPosts(int page = 1, string? userId = null)
@@ -128,49 +172,6 @@ namespace Cinematica.API.Controllers
 
             // Return the paginated list of PostDetails
             return Ok(postDetailsList);
-        }
-
-        // GET api/<PostsController>/5
-        [HttpGet("{postId}")]
-        public async Task<IActionResult> GetPost(long postId, string? userId = null)
-        {
-            var post = await _context.Posts
-                .FindAsync(postId);
-            
-            if (post == null)
-            {
-                return NotFound();
-            }
-            
-            //append prefix to post image if not null
-            if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
-
-            var youLike = false;
-            //Get number of replies attached to post
-            var commentsCount = await _context.Replies.CountAsync(r => r.PostId == postId);
-            //Get count of likes
-            var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
-            //Get if logged in user likes this post
-            if (userId != null) youLike = await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
-            // Get the movies for the post
-            var movies = await _context.MovieSelections
-                .Where(m => m.PostId == postId)
-                .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
-                .ToListAsync();
-
-            var user = await _context.Users.FindAsync(post.UserId);
-            if (user.ProfilePicture != null)
-                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
-            return Ok(new PostDetails()
-            {
-                Post = post,
-                UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
-                LikesCount = likesCount,
-                CommentsCount = commentsCount,
-                YouLike = youLike,
-                Movies = movies,
-            });
         }
 
         [HttpGet("{postId}/replies/{page}")]
