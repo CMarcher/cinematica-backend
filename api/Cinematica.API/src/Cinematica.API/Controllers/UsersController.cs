@@ -101,13 +101,27 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/followers/id
         [HttpGet("followers/{id}")]
-        public IActionResult GetFollowers(string id)
+        public async Task<IActionResult> GetFollowers(string id)
         {
             try
             {
-                var followers = _context.UserFollowers
+                var followersId = await _context.UserFollowers
                                     .Where(u => u.UserId.Contains(id))
-                                    .Select(p => new { p.FollowerId, _helper.GetCognitoUser(p.FollowerId).Result.Username });
+                                    .Select(p => p.FollowerId)
+                                    .ToListAsync();
+
+                List<dynamic> followers = new List<dynamic>();
+
+                foreach (var fid in followersId)
+                {
+                    var user = await _context.Users.FindAsync(fid);
+
+                    followers.Add(new
+                    {
+                        UserId = fid,
+                        Username = user.UserName
+                    });
+                }
 
                 return Ok(followers);
             }
@@ -119,13 +133,27 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/following/id
         [HttpGet("following/{id}")]
-        public IActionResult GetFollowing(string id)
+        public async Task<IActionResult> GetFollowing(string id)
         {
             try
             {
-                var following = _context.UserFollowers
+                var followingIds = await _context.UserFollowers
                                     .Where(u => u.FollowerId.Contains(id))
-                                    .Select(p => new { p.UserId, _helper.GetCognitoUser(p.UserId).Result.Username });
+                                    .Select(p => p.UserId)
+                                    .ToListAsync();
+
+                List<dynamic> following = new List<dynamic>();
+
+                foreach (var fid in followingIds)
+                {
+                    var user = await _context.Users.FindAsync(fid);
+
+                    following.Add(new
+                    {
+                        UserId = fid,
+                        Username = user.UserName
+                    });
+                }
 
                 return Ok(following);
             }
