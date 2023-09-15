@@ -15,17 +15,5 @@ namespace Cinematica.API.Models.Database
 
         public virtual Post Post { get; set; }
         public virtual User User { get; set; }
-
-        public static ReplyDetails ConvertDetails(Reply reply, DataContext _context)
-        {
-            var user = _context.Users.FindAsync(reply.UserId).Result;
-
-            return new ReplyDetails()
-            {
-                Reply = reply,
-                UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
-            };
-        }
     }
 }

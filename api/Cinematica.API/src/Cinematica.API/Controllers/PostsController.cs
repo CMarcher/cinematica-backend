@@ -195,12 +195,16 @@ namespace Cinematica.API.Controllers
                 }
 
                 var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == reply.ReplyId);
-
-                var replyDetails = Reply.ConvertDetails(reply, _context);
-                replyDetails.LikesCount = likesCount;
-                replyDetails.YouLike = youLike;
-
-                replyDetailsList.Add(replyDetails);
+                var user = await _context.Users.FindAsync(reply.UserId);
+                
+                replyDetailsList.Add(new ReplyDetails()
+                {
+                    Reply = reply,
+                    UserName = user.UserName,
+                    ProfilePicture = user.ProfilePicture,
+                    LikesCount = likesCount,
+                    YouLike = youLike
+                });
             }
 
             // Return the paginated list of ReplyDetails
@@ -220,6 +224,9 @@ namespace Cinematica.API.Controllers
             _context.Posts.Add(postModel.NewPost);
             await _context.SaveChangesAsync();
 
+            //Array of simple movies:
+            List<SimpleMovie> movies = new List<SimpleMovie>();
+
             // Associate movies with the post
             foreach (var movieId in postModel.MovieIds)
             {
@@ -229,12 +236,27 @@ namespace Cinematica.API.Controllers
                     MovieId = movieId
                 };
 
+                var dbMovie = await _context.Movies.FindAsync(movieId);
+                if (dbMovie != null)
+                {
+                    var displayMovie = DBMovie.DbMovieToSimpleMovie(dbMovie);
+                    movies.Add(displayMovie);
+                }
+
                 _context.MovieSelections.Add(movieSelection);
             }
 
             await _context.SaveChangesAsync();
 
-            return Ok(postModel);
+            //Convert to PostDetails model
+            var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
+            return Ok(new PostDetails
+            {
+                Post = postModel.NewPost,
+                UserName = user.UserName,
+                ProfilePicture = user.ProfilePicture,
+                Movies = movies
+            });
         }
 
         [HttpPost("upload")]
