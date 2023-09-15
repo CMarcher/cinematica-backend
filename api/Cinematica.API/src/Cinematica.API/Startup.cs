@@ -35,11 +35,15 @@ public class Startup
 
         services.AddSingleton(client);
 
-        // Map the images folder
-        string myImages = Path.Combine(Environment.ContentRootPath, "images");
+        var imageSettings = Configuration.GetSection("ImageSettings").Get<ImageSettings>();
 
-        // Add the path to the service collection so it can be injected
-        services.AddSingleton(myImages);
+        if (Environment.IsDevelopment())
+        {
+            imageSettings.UploadLocation = Path.Combine(Environment.ContentRootPath,
+                imageSettings.UploadLocation);
+        }
+
+        services.AddSingleton(imageSettings);
 
         services.AddControllers();
 
@@ -92,6 +96,8 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        var imageSettings = Configuration.GetSection("ImageSettings").Get<ImageSettings>();
+        
         app.UseStaticFiles();
 
         if (env.IsDevelopment())
@@ -104,20 +110,17 @@ public class Startup
                 c.RoutePrefix = string.Empty; // Set the Swagger UI at the root URL
                 c.DocExpansion(DocExpansion.List); // Configure UI layout
             });
+
+            //URL Location for image files.
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "images")),
+                    Path.Combine(Directory.GetCurrentDirectory(), imageSettings.UploadLocation)),
                 RequestPath = "/images"
             });
         }
-        else
-        {
-            //TODO: S3 bucket details here for static file connection
-        }
 
         app.UseHttpsRedirection();
-
        
         app.UseAuthentication();
 

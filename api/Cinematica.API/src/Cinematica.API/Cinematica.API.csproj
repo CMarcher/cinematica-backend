@@ -39,6 +39,5 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Models\User\" />
-	  <Folder Include="Services\" />
 	</ItemGroup>
 </Project>

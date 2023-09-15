@@ -8,7 +8,9 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon;
+using Cinematica.API.Models.Display;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -22,35 +24,37 @@ namespace Cinematica.API.Controllers
         private readonly IHelperService _helper;
         private DataContext _context;
         private readonly string _usersFiles;
+        private readonly ImageSettings _imageSettings;
 
-        public UsersController(IConfiguration config, IHelperService helperService, DataContext context, string myImages)
+        public UsersController(IConfiguration config, IHelperService helperService, DataContext context, ImageSettings imageSettings)
         {
             _context = context;
             _helper = helperService;
-            _usersFiles = Path.Combine(myImages, "users");
+            _imageSettings = imageSettings;
+            _usersFiles = Path.Combine(_imageSettings.UploadLocation, "users");
         }
 
         // GET api/Users/id
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(string id)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUser(string userId)
         {
             try
             {
                 // get user from postgre database
-                var databaseUser = _context.Users.SingleOrDefault(u => u.UserId.Equals(id));
+                var databaseUser = await _context.Users.SingleOrDefaultAsync(u => u.UserId.Equals(userId));
 
                 // get follower and following count
-                var follower_count = _context.UserFollowers.Count(u => u.UserId == id);
-                var following_count = _context.UserFollowers.Count(u => u.FollowerId == id);
+                var follower_count = _context.UserFollowers.Count(u => u.UserId == userId);
+                var following_count = _context.UserFollowers.Count(u => u.FollowerId == userId);
 
                 return Ok(new
                 {
-                    id = id,
+                    userId,
                     username = databaseUser.UserName,
-                    profile_picture = databaseUser.ProfilePicture,
-                    cover_picture = databaseUser.CoverPicture,
-                    follower_count = follower_count,
-                    following_count = following_count,
+                    profile_picture = _imageSettings.ServeLocation + "users/" + databaseUser.ProfilePicture,
+                    cover_picture = _imageSettings.ServeLocation + "users/" + databaseUser.CoverPicture,
+                    follower_count,
+                    following_count,
                 });
             }
             catch (UserNotFoundException)
@@ -199,50 +203,50 @@ namespace Cinematica.API.Controllers
         }
 
         // GET api/<UsersController>/posts/id
-        [HttpGet("posts/{id}/{page}")]
-        public IActionResult GetUserPosts(string id, int page)
+        [HttpGet("posts/{userId}/{page}")]
+        public async Task<IActionResult> GetUserPosts(string userId, int page)
         {
-            try
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null) return BadRequest(new { message = "User such user" });
+
+            var posts = await _context.Posts
+                        .Where(p => p.UserId.Contains(userId))
+                        .OrderByDescending(p => p.CreatedAt)
+                        .Skip((page - 1) * 10)
+                        .Take(10)
+                        .ToListAsync();
+
+            if (posts == null) return BadRequest(new { message = "No posts found" });
+
+            // creates a list of anonymous objects to store the replies to return to client
+            List<PostDetails> postsList = new List<PostDetails>();
+
+            foreach (var post in posts)
             {
-                var posts = _context.Posts
-                                    .Where(u => u.UserId.Contains(id))
-                                    .OrderByDescending(p => p.CreatedAt)
-                                    .Skip((page - 1) * 10)
-                                    .Select(p => new { p.PostId, p.Body, p.CreatedAt, p.Image, p.isSpoiler })
-                                    .Take(10)
-                                    .ToList();
+                var likesCount = _context.Likes.Count(l => l.PostId == post.PostId);
+                var youLike = _context.Likes.Any(l => l.PostId == post.PostId && l.UserId == userId);
+                var commentsCount = _context.Replies.Count(r => r.PostId == post.PostId);
 
-                // creates a list of anonymous objects to store the replies to return to client
-                List<dynamic> postsList = new List<dynamic>();
+                // Get the movies for the post
+                var movies = _context.MovieSelections
+                    .Where(m => m.PostId == post.PostId)
+                    .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                    .ToList();
 
-                foreach (var post in posts)
+                postsList.Add(new PostDetails
                 {
-                    var likesCount = _context.Likes.Count(l => l.PostId == post.PostId);
-                    var youLike = _context.Likes.Any(l => l.PostId == post.PostId && l.UserId == id);
-                    var commentsCount = _context.Replies.Count(r => r.PostId == post.PostId);
-
-                    // Get the movies for the post
-                    var movies = _context.MovieSelections
-                        .Where(m => m.PostId == post.PostId)
-                        .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
-                        .ToList();
-
-                    postsList.Add(new
-                    {
-                        Post = post,
-                        Movies = movies,
-                        LikesCount = likesCount,
-                        CommentsCount = commentsCount,
-                        YouLike = youLike
-                    });
-                }
-
-                return Ok(postsList);
+                    Post = post,
+                    UserName = user.UserName,
+                    ProfilePicture = user.ProfilePicture,
+                    Movies = movies,
+                    LikesCount = likesCount,
+                    CommentsCount = commentsCount,
+                    YouLike = youLike
+                });
             }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.ToString() });
-            }
+
+            return Ok(postsList);
         }
 
         // GET api/<UsersController>/replies/id

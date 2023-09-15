@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cinematica.API.Data;
 using Cinematica.API.Models.Display;
+using Cinematica.API.Services;
 using TMDbLib.Objects.Movies;
 
 namespace Cinematica.API.Models.Database
@@ -37,7 +38,7 @@ namespace Cinematica.API.Models.Database
         }
 
         //Function to Map DBMovie to DisplayMovie
-        public static DisplayMovie ToDisplayMovie(DBMovie movie, DataContext _context)
+        public static DisplayMovie ToDisplayMovie(DBMovie movie, DataContext _context, ImageSettings _imageSettings)
         {
             var studioList = _context.MovieStudios
                 .Where(ms => ms.MovieId == movie.MovieId)
@@ -59,8 +60,8 @@ namespace Cinematica.API.Models.Database
                 Id = movie.MovieId,
                 Title = movie.Title,
                 ReleaseYear = movie.ReleaseDate?.ToString("yyyy"),
-                Poster = movie.Poster,
-                Banner = movie.Banner,
+                Poster = _imageSettings.ServeLocation + "movies/" + movie.Poster,
+                Banner = _imageSettings.ServeLocation + "movies/" + movie.Banner,
                 ReleaseDate = movie.ReleaseDate?.ToShortDateString(),
                 Director = movie.Director,
                 Genres = _context.MovieGenres.Where(m=>m.MovieId==movie.MovieId).Select(g=>g.Genre).ToList(),

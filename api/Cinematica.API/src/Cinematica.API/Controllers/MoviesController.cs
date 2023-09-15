@@ -22,13 +22,15 @@ public class MoviesController : ControllerBase
     private readonly IHelperService _helper;
     private const string TmDbPath = "http://image.tmdb.org/t/p/w500";
     private readonly string _movieFiles;
+    private readonly ImageSettings _imageSettings;
 
-    public MoviesController(DataContext context, TMDbClient tmdbClient, IHelperService helperService, string myImages)
+    public MoviesController(DataContext context, TMDbClient tmdbClient, IHelperService helperService, ImageSettings imageSettings)
     {
         _context = context;
         _tmdbClient = tmdbClient;
         _helper = helperService;
-        _movieFiles = Path.Combine(myImages, "movies");
+        _imageSettings = imageSettings;
+        _movieFiles = Path.Combine(_imageSettings.UploadLocation, "movies");
     }
 
     // GET: api/<MoviesController>/{searchTerm}
@@ -118,18 +120,21 @@ public class MoviesController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Return DisplayMovie
-            return Ok(DBMovie.ToDisplayMovie(newMovie, _context));
+            return Ok(DBMovie.ToDisplayMovie(newMovie, _context, _imageSettings));
         }
 
-        return Ok(DBMovie.ToDisplayMovie(checkMovie, _context));
+        return Ok(DBMovie.ToDisplayMovie(checkMovie, _context, _imageSettings));
     }
 
     [HttpGet("withPosts/{searchTerm}")]
     public async Task<IActionResult> GetMoviesWithPosts(string searchTerm)
     {
+        // Convert searchTerm to lower case
+        var lowerCaseSearchTerm = searchTerm.ToLower();
+
         // Get the movies that have posts about them and match the search term
         var movies = await _context.MovieSelections
-            .Where(m => m.Movie.Title.Contains(searchTerm)) // Filter by movie title
+            .Where(m => m.Movie.Title.ToLower().Contains(lowerCaseSearchTerm)) // Filter by movie title
             .Select(m => m.Movie) // Select the associated movies
             .Distinct() // Remove duplicates
             .ToListAsync();

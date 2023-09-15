@@ -15,39 +15,11 @@ namespace Cinematica.API.Controllers
         private readonly DataContext _context;
         private readonly IHelperService _helper;
 
+
         public RepliesController(DataContext context, IHelperService helperService)
         {
             _context = context;
             _helper = helperService;
-        }
-
-        // GET api/<RepliesController>/1
-        [HttpGet("{id}/{userId?}")]
-        public async Task<IActionResult> GetReply(long id, string? userId = null)
-        {
-            var reply = await _context.Replies.FindAsync(id);
-            var youLike = false;
-
-            if (reply == null)
-            {
-                return NotFound();
-            }
-
-            if (userId != null)
-            {
-                youLike = await _context.Likes.AnyAsync(l => l.ReplyId == id && l.UserId == userId);
-            }
-
-            var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == id);
-
-            var replyDetails = new
-            {
-                Reply = reply,
-                LikesCount = likesCount,
-                youLike = youLike
-            };
-
-            return Ok(replyDetails);
         }
 
         // POST api/<RepliesController>

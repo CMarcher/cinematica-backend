@@ -4,6 +4,7 @@ using Cinematica.API.Models.Display;
 using Cinematica.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TMDbLib.Client;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -17,12 +18,14 @@ namespace Cinematica.API.Controllers
         private readonly DataContext _context;
         private readonly IHelperService _helper;
         private readonly string _postFiles;
+        private readonly ImageSettings _imageSettings;
 
-        public PostsController(DataContext context, IHelperService helperService, string myImages)
+        public PostsController(DataContext context, IHelperService helperService, ImageSettings imageSettings)
         {
             _context = context;
             _helper = helperService;
-            _postFiles = Path.Combine(myImages, "posts");
+            _imageSettings = imageSettings;
+            _postFiles = Path.Combine(_imageSettings.UploadLocation, "posts");
         }
 
         // GET: api/<PostsController>/all/{page}
@@ -160,7 +163,7 @@ namespace Cinematica.API.Controllers
             {
                 Post = post,
                 UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
+                ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
                 LikesCount = likesCount,
                 CommentsCount = commentsCount,
                 YouLike = youLike,
@@ -201,7 +204,7 @@ namespace Cinematica.API.Controllers
                 {
                     Reply = reply,
                     UserName = user.UserName,
-                    ProfilePicture = user.ProfilePicture,
+                    ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
                     LikesCount = likesCount,
                     YouLike = youLike
                 });
@@ -254,7 +257,7 @@ namespace Cinematica.API.Controllers
             {
                 Post = postModel.NewPost,
                 UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
+                ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture,
                 Movies = movies
             });
         }
