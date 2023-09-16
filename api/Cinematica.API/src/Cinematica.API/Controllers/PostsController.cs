@@ -113,7 +113,7 @@ namespace Cinematica.API.Controllers
         public async Task<IActionResult> GetFollowingPosts(string userId, int page = 1)
         {
             // checks if id token sub matches user id in request
-            var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             // Get the list of users that the current user is following
@@ -234,7 +234,7 @@ namespace Cinematica.API.Controllers
         public async Task<IActionResult> AddPost([FromBody] AddPostModel postModel)
         {
             // checks if id token sub matches user id in request
-            var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], postModel.NewPost.UserId);
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], postModel.NewPost.UserId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             if (!ModelState.IsValid)
@@ -318,7 +318,7 @@ namespace Cinematica.API.Controllers
             }
 
             // checks if id token sub matches user id in request
-            var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], post.UserId);
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], post.UserId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             // Remove the associated movie selections
@@ -346,7 +346,7 @@ namespace Cinematica.API.Controllers
         public async Task<IActionResult> LikePost(long postId, string userId)
         {
             // checks if id token sub matches user id in request
-            var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);

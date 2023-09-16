@@ -30,7 +30,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Replies.Add(model);
@@ -49,7 +49,7 @@ namespace Cinematica.API.Controllers
         public async Task<IActionResult> LikeReply(string userId, long replyId)
         {
             // checks if id token sub matches user id in request
-            var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             var like = await _context.Likes.FirstOrDefaultAsync(l => l.ReplyId == replyId && l.UserId == userId);
@@ -85,7 +85,7 @@ namespace Cinematica.API.Controllers
                 var reply = await _context.Replies.FindAsync(id);
 
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], reply.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], reply.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 var likedReplies = await _context.Likes

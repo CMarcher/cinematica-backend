@@ -76,7 +76,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
@@ -96,7 +96,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
@@ -182,7 +182,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 await _context.AddAsync(model);
@@ -202,7 +202,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Remove(model);
@@ -412,7 +412,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 var user = await _context.Users.FindAsync(model.UserId);
@@ -435,7 +435,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = await _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 var user = await _context.Users.FindAsync(model.UserId);
