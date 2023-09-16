@@ -14,7 +14,7 @@ public interface IHelperService
     Task<string> DownloadFile(string url, string savePath);
     Task<UserType?> FindUserByEmailAddress(string emailAddress);
     Task<UserType?> GetCognitoUser(string id);
-    Task<bool> CheckTokenSub(string tokenString, string userId);
+    Task<Tuple<bool, string>> CheckTokenSub(string tokenString, string userId);
 }
 
 public class HelperService : IHelperService
@@ -125,11 +125,18 @@ public class HelperService : IHelperService
         }
     }
 
-    public async Task<bool> CheckTokenSub(string tokenString, string userId)
+    public async Task<Tuple<bool, string>> CheckTokenSub(string tokenString, string userId)
     {
         var token = new JwtSecurityToken(jwtEncodedString: tokenString);
         string sub = token.Claims.First(c => c.Type == "sub").Value;
 
-        return sub.Equals(userId);
+        if (sub.Equals(userId))
+        {
+            return Tuple.Create(true, "");
+        }
+        else
+        {
+            return Tuple.Create(false, "Sub in the IdToken doesn't match user id in request body.");
+        }
     }
 }
