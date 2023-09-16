@@ -6,6 +6,10 @@ resource "aws_s3_bucket" "api_lambda_bucket" {
 
 resource "aws_s3_bucket_versioning" "api_lambda_bucket_versioning" {
     bucket = aws_s3_bucket.api_lambda_bucket.bucket
+    
+    versioning_configuration {
+        status = "Enabled"
+    }
 }
 
 # Media bucket #
