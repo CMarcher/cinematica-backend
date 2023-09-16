@@ -22,6 +22,8 @@ resource "aws_codepipeline" "api_pipeline" {
                 S3ObjectKey = "Cinematica.API"
                 PollForSourceChanges = false
             }
+            
+            output_artifacts = ["source_output"]
         }
     }
     
