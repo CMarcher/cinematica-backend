@@ -26,7 +26,7 @@ resource "aws_codebuild_project" "api_build" {
             phases = {
                 build = {
                     commands = [
-                        "aws lambda update-function-code $${LAMBDA_FUNCTION_NAME}"
+                        "aws lambda update-function-code --function-name $${LAMBDA_FUNCTION_NAME}"
                     ]
                 }
             }
