@@ -1,7 +1,7 @@
 resource "aws_codebuild_project" "api_build" {
     name         = "api-build"
     service_role = aws_iam_role.api_codebuild_role.arn
-    build_timeout = 1
+    build_timeout = 5
     
     artifacts {
         type = "NO_ARTIFACTS"
