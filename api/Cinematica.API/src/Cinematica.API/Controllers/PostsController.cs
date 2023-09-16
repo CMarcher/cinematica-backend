@@ -184,6 +184,7 @@ namespace Cinematica.API.Controllers
         }
 
         [HttpGet("{postId}/replies/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReplies(long postId, int page = 1, string? userId = null)
         {
             // Get the "page" of replies for the post
@@ -342,7 +343,6 @@ namespace Cinematica.API.Controllers
 
         // PUT: api/<PostsController>/like/{userId}/{likeId}
         [HttpPut("like/{userId}/{postId}")]
-        [AllowAnonymous]
         public async Task<IActionResult> LikePost(long postId, string userId)
         {
             // checks if id token sub matches user id in request

@@ -25,7 +25,6 @@ namespace Cinematica.API.Controllers
 
         // POST api/<RepliesController>
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> CreateReply([FromBody] Reply model)
         {
             try
