@@ -40,7 +40,8 @@ resource "aws_codepipeline" "api_pipeline" {
             configuration = {
                 ProjectName = aws_codebuild_project.api_build.name
             }
-            
+
+            input_artifacts = ["source_output"]
             output_artifacts = ["build_output"]
         }
     }
