@@ -20,13 +20,14 @@ resource "aws_codebuild_project" "api_build" {
     }
     
     source {
-        type = "NO_SOURCE"
+        type = "CODEPIPELINE"
         buildspec = yamlencode({
             version = "0.2"
             phases = {
                 build = {
                     commands = [
-                        "aws lambda update-function-code --function-name $${LAMBDA_FUNCTION_NAME}"
+                        "ls",
+                        "aws lambda update-function-code --function-name $${LAMBDA_FUNCTION_NAME} --zip-file \"fileb://./helloworld.zip\""
                     ]
                 }
             }
