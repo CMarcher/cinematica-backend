@@ -107,9 +107,9 @@ data "aws_iam_policy_document" "api_codebuild_policy_document" {
         
         resources = [
             aws_s3_bucket.api_pipeline_artifact_bucket.arn,
-            "${aws_s3_bucket.api_pipeline_artifact_bucket.arn}:*",
+            "${aws_s3_bucket.api_pipeline_artifact_bucket.arn}/*",
             aws_s3_bucket.api_lambda_bucket.arn,
-            "${aws_s3_bucket.api_lambda_bucket.arn}:*"
+            "${aws_s3_bucket.api_lambda_bucket.arn}/*"
         ]
     }
 }
