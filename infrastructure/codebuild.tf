@@ -91,6 +91,22 @@ data "aws_iam_policy_document" "api_codebuild_policy_document" {
         
         resources = ["${aws_cloudwatch_log_group.api_codebuild_log_group.arn}:*"]
     }
+    
+    statement {
+        sid = "AllowCodeBuildToAccessArtifactsPolicy"
+        effect = "Allow"
+        
+        actions = [
+            "s3:GetObject",
+            "s3:GetObjectVersion",
+            "s3:GetBucketVersioning"
+        ]
+        
+        resources = [
+            aws_s3_bucket.api_pipeline_artifact_bucket.arn,
+            "${aws_s3_bucket.api_pipeline_artifact_bucket.arn}:*"
+        ]
+    }
 }
 
 resource "aws_cloudwatch_log_group" "api_codebuild_log_group" {
