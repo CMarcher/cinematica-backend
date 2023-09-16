@@ -233,6 +233,32 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = e.GetType().ToString() });
         }
     }
+
+    // POST api/auth/refresh-access-token
+    [HttpPost("refresh-access-token")]
+    public async Task<IActionResult> RefreshAccessToken([FromBody] RefreshRequest model)
+    {
+        try
+        {
+            var cognitoUserPool = new CognitoUserPool(_config["UserPoolId"], _config["AppClientId"], _cognitoClient);
+            var cognitoUser = new CognitoUser(model.Username, _config["AppClientId"], cognitoUserPool, _cognitoClient);
+
+            cognitoUser.SessionTokens = new CognitoUserSession(null, null, model.RefreshToken, DateTime.Now, DateTime.Now.AddHours(1));
+
+            InitiateRefreshTokenAuthRequest refreshRequest = new InitiateRefreshTokenAuthRequest()
+            {
+                AuthFlowType = AuthFlowType.REFRESH_TOKEN_AUTH
+            };
+
+            AuthFlowResponse authResponse = await cognitoUser.StartWithRefreshTokenAuthAsync(refreshRequest);
+            return Ok( new { idToken = authResponse.AuthenticationResult.IdToken });
+        }
+
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.ToString() });
+        }
+    }
 }
 
 
