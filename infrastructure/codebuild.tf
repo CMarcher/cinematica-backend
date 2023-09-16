@@ -99,7 +99,9 @@ data "aws_iam_policy_document" "api_codebuild_policy_document" {
         actions = [
             "s3:GetObject",
             "s3:GetObjectVersion",
-            "s3:GetBucketVersioning"
+            "s3:GetBucketVersioning",
+            "s3:GetBucketAcl", 
+            "s3:GetBucketLocation"
         ]
         
         resources = [
