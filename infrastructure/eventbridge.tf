@@ -1,7 +1,7 @@
 resource "aws_cloudwatch_event_rule" "s3_api_pipeline_trigger" {
     name = "APIPipelineS3Trigger"
     description = "Start the API Pipeline when the S3-stored source package is updated."
-    role-arn = aws_iam_role.api_pipeline_trigger.arn
+    role_arn = aws_iam_role.api_pipeline_trigger.arn
 
     event_pattern = jsonencode({
         source = ["aws.s3"]
