@@ -1,6 +1,6 @@
 resource "aws_codepipeline" "api_pipeline" {
     name     = "api-pipeline"
-    role_arn = aws_iam_role.api_codebuild_role.arn
+    role_arn = aws_iam_role.api_codepipeline_role.arn
     
     artifact_store {
         location = aws_s3_bucket.api_pipeline_artifact_bucket.bucket
