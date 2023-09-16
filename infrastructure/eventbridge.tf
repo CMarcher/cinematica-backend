@@ -18,6 +18,7 @@ resource "aws_cloudwatch_event_target" "api_codepipeline_target" {
     arn  = aws_codepipeline.api_pipeline.arn
     rule = aws_cloudwatch_event_rule.s3_api_pipeline_trigger.name
     target_id = aws_codepipeline.api_pipeline.name
+    role_arn = aws_iam_role.api_pipeline_trigger.arn
 }
 
 resource "aws_iam_role" "api_pipeline_trigger" {
