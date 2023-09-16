@@ -127,7 +127,7 @@ public class HelperService : IHelperService
 
     public Tuple<bool, string> CheckTokenSub(string tokenString, string userId)
     {
-        var token = new JwtSecurityToken(jwtEncodedString: tokenString);
+        var token = new JwtSecurityToken(jwtEncodedString: tokenString.Split(" ")[1]);
         string sub = token.Claims.First(c => c.Type == "sub").Value;
 
         if (sub.Equals(userId))

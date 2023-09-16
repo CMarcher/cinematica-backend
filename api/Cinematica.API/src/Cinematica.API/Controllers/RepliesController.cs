@@ -30,7 +30,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Replies.Add(model);
