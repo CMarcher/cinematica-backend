@@ -12,6 +12,11 @@ resource "aws_s3_bucket_versioning" "api_lambda_bucket_versioning" {
     }
 }
 
+resource "aws_s3_bucket_notification" "api_lambda_events" {
+    bucket = aws_s3_bucket.api_lambda_bucket.id
+    eventbridge = true
+}
+
 # Media bucket #
 
 resource "aws_s3_bucket" "media_bucket" {
