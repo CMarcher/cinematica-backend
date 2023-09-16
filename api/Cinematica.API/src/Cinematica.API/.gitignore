@@ -2,3 +2,6 @@
 .vs
 bin
 obj
+./images/movies
+./images/posts
+./images/users
