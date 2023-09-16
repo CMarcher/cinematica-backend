@@ -19,6 +19,7 @@ namespace Cinematica.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IHelperService _helper;
@@ -36,6 +37,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/Users/id
         [HttpGet("{userId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUser(string userId)
         {
             try
@@ -73,6 +75,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
                 await _context.SaveChangesAsync();
                 return Ok(new { message = "Follow success." });
@@ -89,6 +95,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
                 await _context.SaveChangesAsync();
                 return Ok(new { message = "Unfollow success." });
@@ -101,6 +111,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/followers/id
         [HttpGet("followers/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetFollowers(string id)
         {
             try
@@ -133,6 +144,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/following/id
         [HttpGet("following/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetFollowing(string id)
         {
             try
@@ -169,6 +181,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 await _context.AddAsync(model);
                 await _context.SaveChangesAsync();
                 return Ok(new { message = "Movie successfully added to user." });
@@ -185,6 +201,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 _context.Remove(model);
                 await _context.SaveChangesAsync();
                 return Ok(new { message = "Successfully removed movie from user." });
@@ -197,6 +217,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/movies/id
         [HttpGet("movies/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserMovies(string id)
         {
             try
@@ -232,6 +253,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/posts/id
         [HttpGet("posts/{userId}/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserPosts(string userId, int page)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -284,6 +306,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/replies/id
         [HttpGet("replies/{id}/{page}/")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserReplies(string id, int page)
         {
             try
@@ -321,6 +344,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<UsersController>/replies/id
         [HttpGet("likes/{id}/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserLikes(string id, int page)
         {
             try
@@ -387,6 +411,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 var user = await _context.Users.FindAsync(model.UserId);
                 var filepath = await _helper.UploadFile(model.File, _usersFiles);
                 user.ProfilePicture = filepath;
@@ -406,6 +434,10 @@ namespace Cinematica.API.Controllers
         {
             try
             {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
                 var user = await _context.Users.FindAsync(model.UserId);
                 var filepath = await _helper.UploadFile(model.File, _usersFiles);
                 user.CoverPicture = filepath;

@@ -11,6 +11,7 @@ namespace Cinematica.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RepliesController : ControllerBase
     {
         private readonly DataContext _context;
@@ -24,17 +25,13 @@ namespace Cinematica.API.Controllers
 
         // POST api/<RepliesController>
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> CreateReply([FromBody] Reply model)
         {
             try
             {
-                var tokenString = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
-
-                if(!await _helper.CheckTokenSub(tokenString, model.UserId))
-                {
-                    return Unauthorized(new { message = "Sub in the IdToken doesn't match user id in request body." });
-                }
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Replies.Add(model);
                 await _context.SaveChangesAsync();
@@ -51,6 +48,10 @@ namespace Cinematica.API.Controllers
         [HttpPut("like/{userId}/{replyId}")]
         public async Task<IActionResult> LikeReply(string userId, long replyId)
         {
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], userId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
             var like = await _context.Likes.FirstOrDefaultAsync(l => l.ReplyId == replyId && l.UserId == userId);
 
             if (like == null)
@@ -77,19 +78,27 @@ namespace Cinematica.API.Controllers
 
         // DELETE api/<RepliesController>/1
         [HttpDelete("{id}")]
-        public IActionResult DeleteReply(long id)
+        public async Task<IActionResult> DeleteReply(long id)
         {
             try
             {
-                var likedReplies = _context.Likes.Where(l => l.ReplyId == id);
+                var reply = await _context.Replies.FindAsync(id);
+
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1], reply.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
+                var likedReplies = await _context.Likes
+                                            .Where(l => l.ReplyId == id)
+                                            .ToListAsync();
 
                 foreach (var like in likedReplies)
                 {
                     _context.Likes.Remove(like);
                 }
 
-                _context.Replies.Remove(new Reply() { ReplyId = id });
-                _context.SaveChangesAsync();
+                _context.Replies.Remove(reply);
+                await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Successfully removed reply." });
             }

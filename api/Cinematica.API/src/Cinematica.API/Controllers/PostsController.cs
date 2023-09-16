@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 using TMDbLib.Client;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -14,6 +15,7 @@ namespace Cinematica.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PostsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -31,6 +33,7 @@ namespace Cinematica.API.Controllers
 
         // GET api/<PostsController>/5
         [HttpGet("{postId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPost(long postId, string? userId = null)
         {
             var post = await _context.Posts
@@ -75,6 +78,7 @@ namespace Cinematica.API.Controllers
 
         // GET: api/<PostsController>/all/{page}
         [HttpGet("all/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPosts(int page = 1, string? userId = null)
         {
             // Get the "page" of posts
@@ -108,6 +112,10 @@ namespace Cinematica.API.Controllers
         [HttpGet("following/{userId}/{page}")]
         public async Task<IActionResult> GetFollowingPosts(string userId, int page = 1)
         {
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), userId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
             // Get the list of users that the current user is following
             var followingIds = await _context.UserFollowers
                 .Where(uf => uf.FollowerId == userId)
@@ -143,6 +151,7 @@ namespace Cinematica.API.Controllers
         }
 
         [HttpGet("search/{movieId}/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPostsByMovie(int movieId, int page = 1)
         {
             // Get the "page" of posts that contain the specified movie
@@ -175,6 +184,7 @@ namespace Cinematica.API.Controllers
         }
 
         [HttpGet("{postId}/replies/{page}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReplies(long postId, int page = 1, string? userId = null)
         {
             // Get the "page" of replies for the post
@@ -223,6 +233,10 @@ namespace Cinematica.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPost([FromBody] AddPostModel postModel)
         {
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), postModel.NewPost.UserId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -271,6 +285,7 @@ namespace Cinematica.API.Controllers
         }
 
         [HttpPost("upload")]
+        [AllowAnonymous]
         public async Task<IActionResult> UploadPostImage(IFormFile imageFile)
         {
             if (imageFile == null)
@@ -295,11 +310,16 @@ namespace Cinematica.API.Controllers
         [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(long postId)
         {
+
             var post = await _context.Posts.FindAsync(postId);
             if (post == null)
             {
                 return NotFound();
             }
+
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), post.UserId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
             // Remove the associated movie selections
             var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
@@ -325,6 +345,10 @@ namespace Cinematica.API.Controllers
         [HttpPut("like/{userId}/{postId}")]
         public async Task<IActionResult> LikePost(long postId, string userId)
         {
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), userId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+
             var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
             if (like == null)
