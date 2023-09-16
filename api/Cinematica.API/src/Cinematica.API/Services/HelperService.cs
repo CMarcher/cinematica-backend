@@ -21,11 +21,13 @@ public class HelperService : IHelperService
 {
     private readonly IConfiguration _config;
     private AmazonCognitoIdentityProviderClient _cognitoClient;
+    private readonly IFileStorageService _fileStorageService;
 
-    public HelperService(IConfiguration config, AmazonCognitoIdentityProviderClient client)
+    public HelperService(IConfiguration config, AmazonCognitoIdentityProviderClient client, IFileStorageService fileStorageService)
     {
         _config = config;
         _cognitoClient = client;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<string> DownloadFile(string url, string savePath)
@@ -35,15 +37,17 @@ public class HelperService : IHelperService
 
         if (response.IsSuccessStatusCode)
         {
-            var bytes = await response.Content.ReadAsByteArrayAsync();
-
             // Generate a unique filename with the original file extension
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(url);
 
             // Combine the savePath and the unique filename
             var fullPath = Path.Combine(savePath, fileName);
 
-            await File.WriteAllBytesAsync(fullPath, bytes);
+            var stream = await response.Content.ReadAsStreamAsync();
+            IFormFile file = new FormFile(stream, 0, stream.Length, null, fullPath);
+
+            //save file using IFileStorageService
+            await _fileStorageService.SaveFileAsync(file);
 
             // Return the new filename
             return fileName;
@@ -67,10 +71,11 @@ public class HelperService : IHelperService
         // Combine the savePath and the unique filename
         string fullPath = Path.Combine(savePath, fileName);
 
-        await using (var stream = new FileStream(fullPath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
+        var fileStream = file.OpenReadStream();
+        IFormFile newFile = new FormFile(fileStream, 0, file.Length, null, fullPath);
+
+        //save file using IFileStorageService
+        await _fileStorageService.SaveFileAsync(newFile);
 
         // Return the new filename
         return fileName;

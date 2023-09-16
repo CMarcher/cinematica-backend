@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Amazon.AspNetCore.Identity.Cognito;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.CognitoIdentityProvider;
+using Amazon.S3;
 
 namespace Cinematica.API;
 
@@ -41,6 +42,12 @@ public class Startup
         {
             imageSettings.UploadLocation = Path.Combine(Environment.ContentRootPath,
                 imageSettings.UploadLocation);
+            services.AddSingleton<IFileStorageService>(new LocalFileStorageService());
+        }
+        else
+        {
+            var s3Client = new AmazonS3Client();
+            services.AddSingleton<IFileStorageService>(new S3FileStorageService(s3Client, "cinematica-media"));
         }
 
         services.AddSingleton(imageSettings);

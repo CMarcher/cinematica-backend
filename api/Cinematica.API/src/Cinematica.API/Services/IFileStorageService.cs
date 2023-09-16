@@ -10,19 +10,11 @@ public interface IFileStorageService
 
 public class LocalFileStorageService : IFileStorageService
 {
-    private readonly string _uploadPath;
-
-    public LocalFileStorageService(string uploadPath)
-    {
-        _uploadPath = uploadPath;
-    }
-
     public async Task<string> SaveFileAsync(IFormFile file)
     {
-        var filePath = Path.Combine(_uploadPath, file.FileName);
-        using var stream = new FileStream(filePath, FileMode.Create);
+        await using var stream = new FileStream(file.FileName, FileMode.Create);
         await file.CopyToAsync(stream);
-        return filePath;
+        return file.FileName;
     }
 }
 
