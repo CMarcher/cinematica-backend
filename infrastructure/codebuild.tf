@@ -20,14 +20,14 @@ resource "aws_codebuild_project" "api_build" {
     }
     
     source {
-        type = "CODEPIPELINE"
+        type = "NO_SOURCE"
         buildspec = yamlencode({
             version = "0.2"
             phases = {
                 build = {
                     commands = [
                         "ls",
-                        "aws lambda update-function-code --function-name $${LAMBDA_FUNCTION_NAME} --zip-file \"fileb://./helloworld.zip\""
+                        "aws lambda update-function-code --function-name $${LAMBDA_FUNCTION_NAME} --s3-bucket ${aws_s3_bucket.api_lambda_bucket.bucket} --s3-key Cinematica.API"
                     ]
                 }
             }
@@ -107,7 +107,9 @@ data "aws_iam_policy_document" "api_codebuild_policy_document" {
         
         resources = [
             aws_s3_bucket.api_pipeline_artifact_bucket.arn,
-            "${aws_s3_bucket.api_pipeline_artifact_bucket.arn}:*"
+            "${aws_s3_bucket.api_pipeline_artifact_bucket.arn}:*",
+            aws_s3_bucket.api_lambda_bucket.arn,
+            "${aws_s3_bucket.api_lambda_bucket.arn}:*"
         ]
     }
 }
