@@ -17,6 +17,25 @@ resource "aws_s3_bucket_notification" "api_lambda_events" {
     eventbridge = true
 }
 
+# Front-end source bucket
+
+resource "aws_s3_bucket" "web_app_bucket" {
+    bucket = "cinematica-front-end-source"
+}
+
+resource "aws_s3_bucket_versioning" "web_app_bucket_versioning" {
+    bucket = aws_s3_bucket.web_app_bucket.bucket
+
+    versioning_configuration {
+        status = "Enabled"
+    }
+}
+
+resource "aws_s3_bucket_notification" "web_app_events" {
+    bucket = aws_s3_bucket.web_app_bucket.id
+    eventbridge = true
+}
+
 # Media bucket #
 
 resource "aws_s3_bucket" "media_bucket" {
