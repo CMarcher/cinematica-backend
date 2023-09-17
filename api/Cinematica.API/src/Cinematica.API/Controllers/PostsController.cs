@@ -13,7 +13,7 @@ using TMDbLib.Client;
 
 namespace Cinematica.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize]
     public class PostsController : ControllerBase

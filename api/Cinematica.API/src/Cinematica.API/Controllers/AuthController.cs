@@ -12,7 +12,7 @@ using System.Net;
 
 namespace Cinematica.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _config;
