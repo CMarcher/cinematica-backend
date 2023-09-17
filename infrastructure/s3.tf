@@ -82,3 +82,8 @@ data "aws_iam_policy_document" "cinematica_media_policy_document" {
 resource "aws_s3_bucket" "api_pipeline_artifact_bucket" {
     bucket = "cinematica-api-codepipeline-artifact-store"
 }
+
+# Front-end pipeline artifact bucket
+resource "aws_s3_bucket" "web_app_pipeline_artifact_bucket" {
+    bucket = "cinematica-web-app-codepipeline-artifact-store"
+}
