@@ -190,6 +190,7 @@ namespace Cinematica.API.Controllers
             // Get the "page" of replies for the post
             var replies = await _context.Replies
                 .Where(r => r.PostId == postId) // Filter by post ID
+                .Include(p => p.User)
                 .OrderByDescending(r => r.CreatedAt) // Order by creation date
                 .Skip((page - 1) * 10) // Skip the replies before the current page
                 .Take(10) // Take only the replies of the current page
@@ -212,13 +213,15 @@ namespace Cinematica.API.Controllers
 
                 var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == reply.ReplyId);
                 var user = await _context.Users.FindAsync(reply.UserId);
-                if (user.ProfilePicture != null)
-                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+
+                var profilePicture = reply.User.ProfilePicture;
+                if (profilePicture != null)
+                    profilePicture = _imageSettings.ServeLocation + "users/" + profilePicture;
                 replyDetailsList.Add(new ReplyDetails()
                 {
                     Reply = reply,
-                    UserName = user.UserName,
-                    ProfilePicture = user.ProfilePicture,
+                    UserName = reply.User.UserName,
+                    ProfilePicture = profilePicture,
                     LikesCount = likesCount,
                     YouLike = youLike
                 });
