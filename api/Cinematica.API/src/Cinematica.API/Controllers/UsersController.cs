@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cinematica.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize]
     public class UsersController : ControllerBase
@@ -76,7 +76,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
@@ -96,7 +96,7 @@ namespace Cinematica.API.Controllers
             try
             {
                 // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
                 if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
                 _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });

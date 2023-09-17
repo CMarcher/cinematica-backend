@@ -13,7 +13,7 @@ using static System.Net.WebRequestMethods;
 
 namespace Cinematica.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class MoviesController : ControllerBase
 {
