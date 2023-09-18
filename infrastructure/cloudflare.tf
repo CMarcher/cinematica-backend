@@ -51,8 +51,8 @@ resource "cloudflare_record" "cdn_validation" {
 }
 
 resource "cloudflare_record" "cinematica_social" {
-  name    = var.cdn_domain_name
-  type    = "A"
+  name    = var.root_domain_name
+  type    = "CNAME"
   value   = aws_lb.web_app_load_balancer.dns_name
   zone_id = data.cloudflare_zone.cinematica_social.zone_id
   proxied = false
