@@ -31,7 +31,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var TMDbApiKey = Configuration["TMDbApiKey"];
-        Console.WriteLine("API key is null or empty: " + TMDbApiKey.IsNullOrWhitespace());
+        Console.WriteLine("API key is null or empty: " + TMDbApiKey.IsNullOrWhiteSpace());
         
         TMDbClient client = new (TMDbApiKey);
 
