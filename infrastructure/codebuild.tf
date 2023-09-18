@@ -155,7 +155,7 @@ resource "aws_codebuild_project" "web_app_build" {
                         "echo \"Files in directory:\"",
                         "ls",
                         
-                        "REPOSITORY_URI=${aws_ecrpublic_repository.web_app_image_repository.repository_uri}/front-end",
+                        "REPOSITORY_URI=${aws_ecrpublic_repository.web_app_image_repository.repository_uri}",
                         "echo Logging in to Amazon ECR...",
                         "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws",
                     ]
@@ -174,7 +174,7 @@ resource "aws_codebuild_project" "web_app_build" {
                         "echo Pushing Docker image...",
                         "docker push $REPOSITORY_URI:latest",
                         "echo Writing image definitions file...",
-                        "printf '[{\"name\" : \"cinematica-front-end\", \"imageUri\" : \"%s\"}]' $REPOSITORY_URI:latest > imagedefinitions.json"
+                        "printf '[{\"name\" : \"cinematica\", \"imageUri\" : \"%s\"}]' $REPOSITORY_URI:latest > imagedefinitions.json"
                     ]
                 }
             }

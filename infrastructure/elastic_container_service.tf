@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "web_app_task" {
     
     container_definitions = jsonencode([{
         name = "front-end"
-        image = "${aws_ecrpublic_repository.web_app_image_repository.repository_uri}/front-end:latest"
+        image = "${aws_ecrpublic_repository.web_app_image_repository.repository_uri}:latest"
         essential = true
         appProtocol = "HTTP"
         
