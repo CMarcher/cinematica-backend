@@ -248,7 +248,7 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
     }
     
     statement {
-        sid = "AllowCodeBuildToAccessCinematicaECR"
+        sid = "AllowCodeBuildToAccessCinematicaECRRepository"
         effect = "Allow"
         
         actions = [
@@ -269,5 +269,18 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
         ]
         
         resources = [aws_ecrpublic_repository.web_app_image_repository.arn]
+    }
+
+    statement {
+        sid = "AllowCodeBuildToAccessECR"
+        effect = "Allow"
+
+        actions = [
+            "ecr-public:GetAuthorizationToken",
+            "ecr-public:GetRepositoryPolicy",
+            "ecr-public:DescribeRepositories"
+        ]
+
+        resources = ["*"]
     }
 }
