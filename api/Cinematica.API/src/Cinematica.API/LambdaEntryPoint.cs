@@ -1,3 +1,5 @@
+using Cinematica.API.ConfigProviders;
+
 namespace Cinematica.API;
 
 /// <summary>
@@ -28,8 +30,11 @@ public class LambdaEntryPoint :
     /// <param name="builder"></param>
     protected override void Init(IWebHostBuilder builder)
     {
-        builder
-            .UseStartup<Startup>();
+        builder.ConfigureAppConfiguration((_, builder) => 
+        {
+            builder.AddSecretsManager("ap-southeast-2", "TMDbApiKey", "DB_PASSWORD");
+        })
+        .UseStartup<Startup>();
     }
 
     /// <summary>
@@ -40,6 +45,6 @@ public class LambdaEntryPoint :
     /// </summary>
     /// <param name="builder"></param>
     protected override void Init(IHostBuilder builder)
-    {
+    { 
     }
 }

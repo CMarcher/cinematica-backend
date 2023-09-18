@@ -12,12 +12,6 @@ public partial class DataContext : DbContext
         Configuration = configuration;
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        // connect to postgres with connection string from app settings
-        options.UseNpgsql(Configuration.GetConnectionString("cinematica-local"));
-    }
-
     public virtual DbSet<CastMember> CastMembers { get; set; }
     public virtual DbSet<Like> Likes { get; set; }
     public virtual DbSet<MovieGenres> MovieGenres { get; set; }
