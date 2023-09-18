@@ -19,6 +19,10 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
             DOTNET_DB_USERNAME = ""
             DOTNET_DB_DATABASE = ""
             ASPNETCORE_ENVIRONMENT = "Production"
+            Region = "ap-southeast-2",
+            UserPoolId = aws_cognito_user_pool.cinematica_user_pool.id,
+            AppClientId = aws_cognito_user_pool_client.cinematica_cognito_client.id,
+            Authority = "https://cognito-idp.ap-southeast-2.amazonaws.com/${aws_cognito_user_pool.cinematica_user_pool.id}"
         }
     }
 
