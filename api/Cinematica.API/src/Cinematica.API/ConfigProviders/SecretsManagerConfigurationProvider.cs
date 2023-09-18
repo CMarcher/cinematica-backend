@@ -33,6 +33,7 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
             // Must use Result here, otherwise config won't load in time because of the yielding nature of async
             
             secretMap.Add(secretKey, secretResponse.SecretString);
+            Console.WriteLine($"Successfully got secret for {secretKey}");
         }
 
         return secretMap;
