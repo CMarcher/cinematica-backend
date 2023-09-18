@@ -30,6 +30,8 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
+        Console.WriteLine($"Using authority: {Configuration["Authority"]}");
+        
         var TMDbApiKey = Configuration["TMDbApiKey"];
         TMDbClient client = new (TMDbApiKey);
 
