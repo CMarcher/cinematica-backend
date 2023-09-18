@@ -25,20 +25,19 @@ resource "aws_security_group" "web_app_lb_security_group" {
     name = "web-app-load-balancer-security-group"
     vpc_id = aws_vpc.web_app_vpc.id
 
-    ingress = [
-        {
-            protocol = "tcp"
-            from_port = 80
-            to_port = 80
-            cidr_blocks = ["0.0.0.0/0"]
-        },
-        {
-            protocol = "tcp"
-            from_port = 443
-            to_port = 443
-            cidr_blocks = ["0.0.0.0/0"]
-        },
-    ]
+    ingress {
+        protocol = "tcp"
+        from_port = 80
+        to_port = 80
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    
+    ingress {
+        protocol = "tcp"
+        from_port = 443
+        to_port = 443
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 
     egress {
         protocol = "-1"
@@ -75,7 +74,7 @@ resource "aws_route" "internet_access" {
 
 resource "aws_eip" "web_app_gateway" {
     count = 2
-    vpc = true
+    domain = "vpc"
     depends_on = [aws_internet_gateway.web_app_gateway]
 }
 
