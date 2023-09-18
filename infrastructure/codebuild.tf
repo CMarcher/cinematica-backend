@@ -275,7 +275,8 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
         actions = [
             "ecr-public:GetAuthorizationToken",
             "ecr-public:GetRepositoryPolicy",
-            "ecr-public:DescribeRepositories"
+            "ecr-public:DescribeRepositories",
+            "sts:GetServiceBearerToken"
         ]
 
         resources = ["*"]
