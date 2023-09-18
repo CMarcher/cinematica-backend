@@ -11,7 +11,7 @@ resource "aws_ecs_service" "web_app_service" {
     launch_type = "FARGATE"
     
     network_configuration {
-        subnets = aws_subnet.web_app_private_subnet.id
+        subnets = aws_subnet.web_app_private_subnet.*.id
         security_groups = [aws_security_group.web_app_security_group.id]
     }
     
