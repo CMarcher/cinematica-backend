@@ -17,3 +17,12 @@ resource "aws_acm_certificate" "cdn_certificate" {
     create_before_destroy = true
   }
 }
+
+resource "aws_acm_certificate" "root_domain_certificate" {
+  domain_name = var.root_domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
