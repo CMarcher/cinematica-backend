@@ -52,7 +52,7 @@ resource "aws_ecs_task_definition" "web_app_task" {
         logConfiguration = {
             logDriver = "awslogs"
             options = {
-                awslogs-create-group = false
+                awslogs-create-group = "false"
                 awslogs-group = aws_cloudwatch_log_group.web_app_tasks_log_group.name
                 awslogs-region = "ap-south-east-2"
             }
