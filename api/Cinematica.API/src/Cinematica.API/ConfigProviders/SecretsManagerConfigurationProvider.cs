@@ -20,7 +20,7 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
         Data = GetSecrets();
     }
 
-    private Dictionary<string, string> GetSecretsAsync()
+    private Dictionary<string, string> GetSecrets()
     {
         using var secretsClient = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(_region));
         var secretMap = new Dictionary<string, string>();
