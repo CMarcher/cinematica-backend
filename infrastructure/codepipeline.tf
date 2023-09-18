@@ -273,6 +273,9 @@ data "aws_iam_policy_document" "web_app_pipeline_policy_document" {
             "ecs:DescribeServices",
         ]
         
-        resources = ["${aws_ecs_service.web_app_service.cluster}/${aws_ecs_service.web_app_service.name}"]
+        resources = [
+            aws_ecs_cluster.web_app_cluster.arn,
+            "${aws_ecs_cluster.web_app_cluster.arn}/*"
+        ]
     }
 }
