@@ -30,7 +30,6 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
-
         var TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
         TMDbClient client = new (TMDbApiKey);
 
@@ -54,7 +53,16 @@ public class Startup
 
         services.AddControllers();
 
-        services.AddDbContext<DataContext>();
+        services.AddDbContext<DataContext>(options =>
+        {
+            if (Environment.IsDevelopment())
+                options.UseNpgsql(Configuration.GetConnectionString("db-connection-string"));
+            else
+                options.UseNpgsql($"Host={Configuration["DB_HOST"]};" +
+                                  $"Database={Configuration["DB_DATABASE"]};" +
+                                  $"Username={Configuration["DB_USERNAME"]};" +
+                                  $"Password={Configuration["DB_PASSWORD"]}");
+        });
 
         // Add Cognito Identity Provider
         AmazonCognitoIdentityProviderClient cognitoClient = new AmazonCognitoIdentityProviderClient();
@@ -72,7 +80,7 @@ public class Startup
         // Add Cors
         services.AddCors(options => {
             options.AddPolicy("AllowReactFrontend",
-                builder => builder.WithOrigins("https://localhost:3000")
+                builder => builder.WithOrigins("https://localhost:3000", "https://api.cinematica.social")
                 .AllowAnyMethod()
                 .AllowAnyHeader());
         });
@@ -106,7 +114,7 @@ public class Startup
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         var imageSettings = Configuration.GetSection("ImageSettings").Get<ImageSettings>();
-        
+
         app.UseStaticFiles();
 
         if (env.IsDevelopment())

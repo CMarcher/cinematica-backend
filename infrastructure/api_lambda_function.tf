@@ -1,70 +1,92 @@
 variable "cinematica_lambda_function_name" {
-  default = "cinematica-api"
+    default = "cinematica-api"
 }
 
 resource "aws_lambda_function" "cinematica_api_lambda" {
-  function_name = var.cinematica_lambda_function_name
-  handler = "Cinematica.API::Cinematica.API.LambdaEntryPoint::FunctionHandlerAsync"
-  runtime = "dotnet6"
-  s3_bucket = aws_s3_bucket.api_lambda_bucket.bucket
-  s3_key = "Cinematica.API"
-  role = aws_iam_role.cinematica_api_lambda_role.arn
-  memory_size = 1024
-  package_type = "Zip"
-  timeout = 30
+    function_name = var.cinematica_lambda_function_name
+    handler = "Cinematica.API::Cinematica.API.LambdaEntryPoint::FunctionHandlerAsync"
+    runtime = "dotnet6"
+    s3_bucket = aws_s3_bucket.api_lambda_bucket.bucket
+    s3_key = "Cinematica.API"
+    role = aws_iam_role.cinematica_api_lambda_role.arn
+    memory_size = 1024
+    package_type = "Zip"
+    timeout = 30
 
-  depends_on = [
-    aws_iam_role_policy_attachment.cinematica_api_lambda_log_policy_attachment,
-    aws_cloudwatch_log_group.cinematica_api_lambda_log_group
-  ]
+    environment {
+        variables = {
+            DOTNET_DB_HOST = ""
+            DOTNET_DB_USERNAME = ""
+            DOTNET_DB_DATABASE = ""
+            ASPNETCORE_ENVIRONMENT = "Production"
+        }
+    }
+
+    depends_on = [
+        aws_iam_role_policy_attachment.cinematica_api_lambda_log_policy_attachment,
+        aws_cloudwatch_log_group.cinematica_api_lambda_log_group
+    ]
 }
 
 resource "aws_iam_role" "cinematica_api_lambda_role" {
-  name = "cinematica-api-lambda-role"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+    name = "CinematicaAPILambdaExecutionRole"
+    assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
 data "aws_iam_policy_document" "lambda_assume_role" {
-  statement {
-    effect = "Allow"
+    statement {
+        effect = "Allow"
 
-    principals {
-      type = "Service"
-      identifiers = ["lambda.amazonaws.com"]
+        principals {
+            type = "Service"
+            identifiers = ["lambda.amazonaws.com"]
+        }
+
+        actions = ["sts:AssumeRole"]
     }
-
-    actions = ["sts:AssumeRole"]
-  }
 }
 
-resource "aws_iam_policy" "cinematica_api_lambda_logging_access" {
-  name = "cinematica-api-lambda-logging-access"
-  path = "/"
-  description = "IAM policy that allows the Cinematica API lambda function to its corresponding log group"
-  policy = data.aws_iam_policy_document.cinematica_api_lambda_log_policy_document.json
+resource "aws_iam_policy" "cinematica_api_lambda_permissions" {
+    name = "CinematicaAPILambdaPermissionsPolicy"
+    path = "/"
+    description = "IAM policy that allows the Cinematica API lambda function to its corresponding log group"
+    policy = data.aws_iam_policy_document.cinematica_api_lambda_policy_document.json
 }
 
-data "aws_iam_policy_document" "cinematica_api_lambda_log_policy_document" {
-  statement {
-    effect = "Allow"
+data "aws_iam_policy_document" "cinematica_api_lambda_policy_document" {
+    statement {
+        effect = "Allow"
 
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-      "logs:GetLogEvents"
-    ]
+        actions = [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:GetLogEvents"
+        ]
 
-    resources = ["${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.arn}:*"]
-  }
+        resources = ["${aws_cloudwatch_log_group.cinematica_api_lambda_log_group.arn}:*"]
+    }
+    
+    statement {
+        effect = "Allow"
+        
+        actions = [
+            "secretsmanager:GetSecretValue"
+        ]
+        
+        resources = [
+            aws_secretsmanager_secret.database_password.arn,
+            aws_secretsmanager_secret.tmdb_api_secret.arn
+        ]
+    }
 }
 
 resource "aws_iam_role_policy_attachment" "cinematica_api_lambda_log_policy_attachment" {
-  role = aws_iam_role.cinematica_api_lambda_role.name
-  policy_arn = aws_iam_policy.cinematica_api_lambda_logging_access.arn
+    role = aws_iam_role.cinematica_api_lambda_role.name
+    policy_arn = aws_iam_policy.cinematica_api_lambda_permissions.arn
 }
 
 resource "aws_cloudwatch_log_group" "cinematica_api_lambda_log_group" {
-  name = "/aws/lambda/${var.cinematica_lambda_function_name}"
-  retention_in_days = 14
+    name = "/aws/lambda/${var.cinematica_lambda_function_name}"
+    retention_in_days = 14
 }
