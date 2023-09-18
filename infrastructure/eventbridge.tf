@@ -37,7 +37,7 @@ resource "aws_cloudwatch_event_rule" "s3_web_app_pipeline_trigger" {
     })
 }
 
-resource "aws_cloudwatch_event_target" "api_codepipeline_target" {
+resource "aws_cloudwatch_event_target" "web_app_codepipeline_target" {
     arn  = aws_codepipeline.web_app_pipeline.arn
     rule = aws_cloudwatch_event_rule.s3_web_app_pipeline_trigger.name
     target_id = aws_codepipeline.web_app_pipeline.name
