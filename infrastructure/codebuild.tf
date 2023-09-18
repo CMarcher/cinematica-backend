@@ -252,11 +252,8 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
         effect = "Allow"
         
         actions = [
-            "ecr-public:GetAuthorizationToken",
             "ecr-public:BatchCheckLayerAvailability",
             "ecr-public:GetDownloadUrlForLayer",
-            "ecr-public:GetRepositoryPolicy",
-            "ecr-public:DescribeRepositories",
             "ecr-public:ListImages",
             "ecr-public:DescribeImages",
             "ecr-public:BatchGetImage",
