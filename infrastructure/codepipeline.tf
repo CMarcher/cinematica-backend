@@ -280,4 +280,10 @@ data "aws_iam_policy_document" "web_app_pipeline_policy_document" {
             "arn:aws:ecs:ap-southeast-2:${local.account_id}:container-instance/${aws_ecs_cluster.web_app_cluster.name}/*"
         ]
     }
+    
+    statement {
+        effect = "Allow"
+        actions = ["iam:PassRole"]
+        resources = [aws_iam_role.ecs_web_app_execution_role.arn]
+    }
 }
