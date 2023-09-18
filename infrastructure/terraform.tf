@@ -10,6 +10,14 @@ terraform {
             version = "4.14.0"
         }
     }
+
+    cloud {
+        organization = "cinematica"
+
+        workspaces {
+            name = "cinematica-backend"
+        }
+    }
 }
 
 provider "aws" {
