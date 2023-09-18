@@ -83,6 +83,32 @@ data "aws_iam_policy_document" "cinematica_api_lambda_policy_document" {
             aws_secretsmanager_secret.tmdb_api_secret.arn
         ]
     }
+    
+    statement {
+        effect = "Allow"
+        actions = [
+            "cognito-idp:ListUsers",
+            "cognito-idp:ListUserPoolClients",
+            "cognito-idp:AdminGetUser",
+            "cognito-idp:DescribeUserPool",
+            "cognito-idp:ChangePassword",
+            "cognito-idp:ConfirmSignUp",
+            "cognito-idp:SignUp",
+            "cognito-idp:ResendConfirmationCode",
+            "cognito-idp:InitiateAuth",
+            "cognito-idp:ConfirmForgotPassword",
+            "cognito-idp:RespondToAuthChallenge",
+            "cognito-idp:ForgotPassword"
+        ]
+        
+        resources = [aws_cognito_user_pool.cinematica_user_pool.arn]
+    }
+    
+    statement {
+        effect = "Allow"
+        actions = ["s3:PutObject"]
+        resources = [aws_s3_bucket.media_bucket.arn]
+    }
 }
 
 resource "aws_iam_role_policy_attachment" "cinematica_api_lambda_log_policy_attachment" {
