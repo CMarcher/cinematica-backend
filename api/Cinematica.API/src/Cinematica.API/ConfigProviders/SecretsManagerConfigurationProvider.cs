@@ -11,19 +11,16 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
     
     public SecretsManagerConfigurationProvider(string region, params string[] secrets)
     {
-        Console.WriteLine("Started setting up config provider.");
         _region = region;
         _secretKeys = secrets;
     }
 
-    public override async void Load()
+    public override void Load()
     {
-        Console.WriteLine("Started loading secrets.");
-        Data = await GetSecretsAsync();
-        Console.WriteLine("Finished setting up config provider.");
+        Data = GetSecrets();
     }
 
-    private async Task<Dictionary<string, string>> GetSecretsAsync()
+    private Dictionary<string, string> GetSecretsAsync()
     {
         using var secretsClient = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(_region));
         var secretMap = new Dictionary<string, string>();
@@ -31,7 +28,8 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
         foreach (var secretKey in _secretKeys)
         {
             var request = new GetSecretValueRequest { SecretId = secretKey, VersionStage = "AWSCURRENT" };
-            var secretResponse = await secretsClient.GetSecretValueAsync(request);
+            var secretResponse = secretsClient.GetSecretValueAsync(request).Result; 
+            // Must use Result here, otherwise config won't load in time because of the yielding nature of async
             
             secretMap.Add(secretKey, secretResponse.SecretString);
         }
