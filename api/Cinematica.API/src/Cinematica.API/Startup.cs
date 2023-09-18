@@ -80,7 +80,7 @@ public class Startup
         // Add Cors
         services.AddCors(options => {
             options.AddPolicy("AllowReactFrontend",
-                builder => builder.WithOrigins("https://localhost:3000", "https://api.cinematica.social")
+                builder => builder.WithOrigins("https://localhost:3000", "https://cinematica.social")
                 .AllowAnyMethod()
                 .AllowAnyHeader());
         });
