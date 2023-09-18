@@ -146,7 +146,7 @@ resource "aws_codebuild_project" "web_app_build" {
     }
 
     source {
-        type = "CODEBUILD"
+        type = "CODEPIPELINE"
         buildspec = yamlencode({
             version = "0.2"
             phases = {
