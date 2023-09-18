@@ -54,9 +54,12 @@ resource "aws_ecs_task_definition" "web_app_task" {
             options = {
                 awslogs-group = aws_cloudwatch_log_group.web_app_tasks_log_group.name
                 awslogs-region = "ap-south-east-2"
+                awslogs-stream-prefix = "ecs"
             }
         }
     }])
+    
+    
     
     execution_role_arn = aws_iam_role.ecs_web_app_execution_role.arn
 }
