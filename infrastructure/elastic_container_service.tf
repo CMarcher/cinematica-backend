@@ -59,8 +59,6 @@ resource "aws_ecs_task_definition" "web_app_task" {
         }
     }])
     
-    
-    
     execution_role_arn = aws_iam_role.ecs_web_app_execution_role.arn
 }
 

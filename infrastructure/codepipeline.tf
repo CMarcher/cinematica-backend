@@ -250,4 +250,29 @@ data "aws_iam_policy_document" "web_app_pipeline_policy_document" {
 
         resources = [aws_codebuild_project.web_app_build.arn]
     }
+    
+    statement {
+        sid = "AllowCodePipelineToGetAndUpdateTaskDefinitions"
+        effect = "Allow"
+        
+        actions = [
+            "ecs:DescribeTaskDefinition",
+            "ecs:RegisterTaskDefinition"
+        ]
+        
+        resources = ["*"]
+    }
+    
+    statement {
+        effect = "Allow"
+        
+        actions = [
+            "ecs:UpdateService",
+            "ecs:ListTasks",
+            "ecs:DescribeTasks",
+            "ecs:DescribeServices",
+        ]
+        
+        resources = ["${aws_ecs_service.web_app_service.cluster}/${aws_ecs_service.web_app_service.name}"]
+    }
 }

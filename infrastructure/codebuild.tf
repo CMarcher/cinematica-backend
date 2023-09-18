@@ -152,13 +152,7 @@ resource "aws_codebuild_project" "web_app_build" {
             phases = {
                 pre_build = {
                     commands = [
-                        "echo \"Files in directory (before):\"",
-                        "ls",
-                        "echo Unzipping front-end source code...",
-                        "unzip webapp.zip",
-                        "echo Removing zip file...",
-                        "rm webapp.zip",
-                        "echo \"Files in directory (after):\"",
+                        "echo \"Files in directory:\"",
                         "ls",
                         
                         "REPOSITORY_URI=${aws_ecrpublic_repository.web_app_image_repository.repository_uri}/front-end",
