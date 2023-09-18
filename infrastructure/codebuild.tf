@@ -161,7 +161,7 @@ resource "aws_codebuild_project" "web_app_build" {
                         
                         "REPOSITORY_URI=${aws_ecrpublic_repository.web_app_image_repository.repository_uri}/front-end",
                         "echo Logging in to Amazon ECR...",
-                        "aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${local.account_id}.dkr.ecr.ap-southeast-2.amazonaws.com",
+                        "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws",
                     ]
                 }
                 
