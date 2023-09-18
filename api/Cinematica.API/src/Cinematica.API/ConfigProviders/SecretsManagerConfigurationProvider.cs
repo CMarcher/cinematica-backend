@@ -11,13 +11,16 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
     
     public SecretsManagerConfigurationProvider(string region, params string[] secrets)
     {
+        Console.WriteLine("Started setting up config provider.");
         _region = region;
         _secretKeys = secrets;
     }
 
     public override async void Load()
     {
+        Console.WriteLine("Started loading secrets.");
         Data = await GetSecretsAsync();
+        Console.WriteLine("Finished setting up config provider.");
     }
 
     private async Task<Dictionary<string, string>> GetSecretsAsync()
