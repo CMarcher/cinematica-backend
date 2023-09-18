@@ -252,22 +252,20 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
         effect = "Allow"
         
         actions = [
-            "ecr:GetAuthorizationToken",
-            "ecr:BatchCheckLayerAvailability",
-            "ecr:GetDownloadUrlForLayer",
-            "ecr:GetRepositoryPolicy",
-            "ecr:DescribeRepositories",
-            "ecr:ListImages",
-            "ecr:DescribeImages",
-            "ecr:BatchGetImage",
-            "ecr:GetLifecyclePolicy",
-            "ecr:GetLifecyclePolicyPreview",
-            "ecr:ListTagsForResource",
-            "ecr:DescribeImageScanFindings",
-            "ecr:InitiateLayerUpload",
-            "ecr:UploadLayerPart",
-            "ecr:CompleteLayerUpload",
-            "ecr:PutImage"
+            "ecr-public:GetAuthorizationToken",
+            "ecr-public:BatchCheckLayerAvailability",
+            "ecr-public:GetDownloadUrlForLayer",
+            "ecr-public:GetRepositoryPolicy",
+            "ecr-public:DescribeRepositories",
+            "ecr-public:ListImages",
+            "ecr-public:DescribeImages",
+            "ecr-public:BatchGetImage",
+            "ecr-public:ListTagsForResource",
+            "ecr-public:DescribeImageScanFindings",
+            "ecr-public:InitiateLayerUpload",
+            "ecr-public:UploadLayerPart",
+            "ecr-public:CompleteLayerUpload",
+            "ecr-public:PutImage"
         ]
         
         resources = [aws_ecrpublic_repository.web_app_image_repository.arn]
