@@ -27,6 +27,7 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
 
         foreach (var secretKey in _secretKeys)
         {
+			Console.WriteLine($"Getting secret for {secretKey}");
             var request = new GetSecretValueRequest { SecretId = secretKey };
             var secretResponse = secretsClient.GetSecretValueAsync(request).Result; 
             // Must use Result here, otherwise config won't load in time because of the yielding nature of async
