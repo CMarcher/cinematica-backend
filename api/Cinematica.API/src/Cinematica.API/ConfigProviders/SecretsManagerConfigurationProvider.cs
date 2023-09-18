@@ -27,7 +27,7 @@ public class SecretsManagerConfigurationProvider : ConfigurationProvider
 
         foreach (var secretKey in _secretKeys)
         {
-            var request = new GetSecretValueRequest { SecretId = secretKey, VersionStage = "AWSCURRENT" };
+            var request = new GetSecretValueRequest { SecretId = secretKey };
             var secretResponse = secretsClient.GetSecretValueAsync(request).Result; 
             // Must use Result here, otherwise config won't load in time because of the yielding nature of async
             
