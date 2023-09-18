@@ -174,7 +174,7 @@ resource "aws_codebuild_project" "web_app_build" {
                         "echo Pushing Docker image...",
                         "docker push $REPOSITORY_URI:latest",
                         "echo Writing image definitions file...",
-                        "printf '[{\"name\" : \"cinematica\", \"imageUri\" : \"%s\"}]' $REPOSITORY_URI:latest > imagedefinitions.json"
+                        "printf '[{\"name\" : \"front-end\", \"imageUri\" : \"%s\"}]' $REPOSITORY_URI:latest > imagedefinitions.json"
                     ]
                 }
             }
