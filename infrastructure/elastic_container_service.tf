@@ -53,7 +53,7 @@ resource "aws_ecs_task_definition" "web_app_task" {
             logDriver = "awslogs"
             options = {
                 awslogs-group = aws_cloudwatch_log_group.web_app_tasks_log_group.name
-                awslogs-region = "ap-south-east-2"
+                awslogs-region = "ap-southeast-2"
                 awslogs-stream-prefix = "ecs"
             }
         }
