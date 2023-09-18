@@ -3,7 +3,7 @@ resource "aws_lb" "web_app_load_balancer" {
     internal = false
     load_balancer_type = "application"
     security_groups = [aws_security_group.web_app_lb_security_group.id]
-    subnets = [aws_subnet.web_app_public_subnet.*.id]
+    subnets = aws_subnet.web_app_public_subnet.*.id
     ip_address_type = "ipv4"
     enable_deletion_protection = false
 }
