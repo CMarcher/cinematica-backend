@@ -164,7 +164,7 @@ resource "aws_codebuild_project" "web_app_build" {
                 build = {
                     commands = [
                         "echo Building front-end Docker image...",
-                        "docker build -t $REPOSITORY_URI:latest"
+                        "docker build -t $REPOSITORY_URI:latest ."
                     ]
                 }
                 
