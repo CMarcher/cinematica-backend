@@ -265,7 +265,10 @@ data "aws_iam_policy_document" "web_app_codebuild_policy_document" {
             "ecr-public:PutImage"
         ]
         
-        resources = [aws_ecrpublic_repository.web_app_image_repository.arn]
+        resources = [
+            aws_ecrpublic_repository.web_app_image_repository.arn,
+            "${aws_ecrpublic_repository.web_app_image_repository.arn}/*"
+        ]
     }
 
     statement {
