@@ -34,7 +34,7 @@ resource "aws_ecs_service" "web_app_service" {
 resource "aws_ecs_task_definition" "web_app_task" {
     family = "cinematica-front-end"
     cpu = 512
-    memory = 512
+    memory = 1024
     requires_compatibilities = ["FARGATE"]
     network_mode = "awsvpc"
     
