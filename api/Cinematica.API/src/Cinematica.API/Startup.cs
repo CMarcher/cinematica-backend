@@ -30,7 +30,9 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container
     public void ConfigureServices(IServiceCollection services)
     {
-        var TMDbApiKey = Configuration.GetSection("TMDbApiKey").Value;
+        var TMDbApiKey = Configuration["TMDbApiKey"];
+        Console.WriteLine("API key is null or empty: " + string.IsNullOrWhiteSpace(TMDbApiKey));
+        
         TMDbClient client = new (TMDbApiKey);
 
         services.AddSingleton(client);
