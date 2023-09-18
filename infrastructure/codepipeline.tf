@@ -275,7 +275,9 @@ data "aws_iam_policy_document" "web_app_pipeline_policy_document" {
         
         resources = [
             aws_ecs_cluster.web_app_cluster.arn,
-            "${aws_ecs_cluster.web_app_cluster.arn}/*"
+            "arn:aws:ecs:ap-southeast-2:${local.account_id}:service/${aws_ecs_cluster.web_app_cluster.name}/*",
+            "arn:aws:ecs:ap-southeast-2:${local.account_id}:task/${aws_ecs_cluster.web_app_cluster.name}/*",
+            "arn:aws:ecs:ap-southeast-2:${local.account_id}:container-instance/${aws_ecs_cluster.web_app_cluster.name}/*"
         ]
     }
 }
