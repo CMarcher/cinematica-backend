@@ -155,26 +155,26 @@ public class Startup
                     await context.Response.WriteAsync(" Page: Home.");
                 }
             });
+        });
 
-            app.UseHttpsRedirection();
+        app.UseHttpsRedirection();
 
-            app.UseAuthentication();
+        app.UseAuthentication();
 
-            app.UseRouting();
+        app.UseRouting();
 
-            app.UseAuthorization();
+        app.UseAuthorization();
 
-            app.UseCors("AllowReactFrontend");
+        app.UseCors("AllowReactFrontend");
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapGet("/",
-                    async context =>
-                    {
-                        await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
-                    });
-            });
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapGet("/",
+                async context =>
+                {
+                    await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
+                });
         });
     }
 }
