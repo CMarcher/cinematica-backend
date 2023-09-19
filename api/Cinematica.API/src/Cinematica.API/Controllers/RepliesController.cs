@@ -40,7 +40,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -52,27 +52,34 @@ namespace Cinematica.API.Controllers
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
-            var like = await _context.Likes.FirstOrDefaultAsync(l => l.ReplyId == replyId && l.UserId == userId);
-
-            if (like == null)
+            try
             {
-                // If the like doesn't exist, create it
-                like = new Like
+                var like = await _context.Likes.FirstOrDefaultAsync(l => l.ReplyId == replyId && l.UserId == userId);
+
+                if (like == null)
                 {
-                    ReplyId = replyId,
-                    UserId = userId
-                };
+                    // If the like doesn't exist, create it
+                    like = new Like
+                    {
+                        ReplyId = replyId,
+                        UserId = userId
+                    };
 
-                _context.Likes.Add(like);
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "User successfully liked the post." });
+                    _context.Likes.Add(like);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = "User successfully liked the post." });
+                }
+                else
+                {
+                    // If the like exists, remove it
+                    _context.Likes.Remove(like);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = "User successfully unliked the post." });
+                }
             }
-            else
+            catch (Exception exception)
             {
-                // If the like exists, remove it
-                _context.Likes.Remove(like);
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "User successfully unliked the post." });
+                return BadRequest(ExceptionHandler.HandleException(exception));
             }
         }
 
@@ -104,7 +111,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
     }

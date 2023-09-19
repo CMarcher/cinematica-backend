@@ -50,14 +50,8 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email already registered." });
             } 
         }
-        catch(UsernameExistsException) {
-            return BadRequest(new { message = "Username already registered" });
-        }
-        catch(InvalidPasswordException) {
-            return BadRequest(new { message = "Invalid password." });
-        }
-        catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -88,20 +82,8 @@ public class AuthController : ControllerBase
 
             return Ok(new { user_id = user.UserAttributes.ToArray()[0].Value, idToken = result.IdToken, refreshToken = result.RefreshToken });
         }
-        catch (UserNotConfirmedException)
-        {
-            return BadRequest(new { message = "User hasn't been verified yet." });
-        }
-        catch (UserNotFoundException)
-        {
-            return BadRequest(new { message = "Username not found." });
-        }
-        catch (NotAuthorizedException)
-        {
-            return BadRequest(new { message = "Incorrect username or password." });
-        }
-        catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -131,17 +113,8 @@ public class AuthController : ControllerBase
 
             return Ok(new { message = "Verification successful." });
         }
-        catch(CodeMismatchException) {
-            return BadRequest(new { message = "Incorrect code." });
-        }
-        catch(ExpiredCodeException) {
-            return BadRequest(new { message = "Expired code." });
-        }
-        catch(UserNotFoundException) {
-            return BadRequest(new { message = "User doesn't exist." });
-        }
-        catch(Exception e) {
-            return BadRequest(new { message = e.ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -168,8 +141,8 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = email + " Email not found." });
             }
         }
-        catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -196,14 +169,8 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email not found." });
             }
         }
-        catch(UserNotConfirmedException) {
-            return BadRequest(new { message = "User hasn't been verified." });
-        }
-        catch(InvalidPasswordException) {
-            return BadRequest(new { message = "Invalid password." });
-        }
-        catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -229,8 +196,8 @@ public class AuthController : ControllerBase
             } 
         } 
         
-        catch(Exception e) {
-            return BadRequest(new { message = e.GetType().ToString() });
+        catch(Exception exception) {
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -254,9 +221,9 @@ public class AuthController : ControllerBase
             return Ok( new { idToken = authResponse.AuthenticationResult.IdToken });
         }
 
-        catch (Exception e)
+        catch (Exception exception)
         {
-            return BadRequest(new { message = e.ToString() });
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 }

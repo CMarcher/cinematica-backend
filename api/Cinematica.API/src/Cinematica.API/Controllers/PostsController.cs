@@ -245,46 +245,54 @@ namespace Cinematica.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Posts.Add(postModel.NewPost);
-            await _context.SaveChangesAsync();
-
-            //Array of simple movies:
-            List<SimpleMovie> movies = new List<SimpleMovie>();
-
-            // Associate movies with the post
-            foreach (var movieId in postModel.MovieIds)
+            try
             {
-                var movieSelection = new MovieSelection
-                {
-                    PostId = postModel.NewPost.PostId,
-                    MovieId = movieId
-                };
+                _context.Posts.Add(postModel.NewPost);
+                await _context.SaveChangesAsync();
 
-                var dbMovie = await _context.Movies.FindAsync(movieId);
-                if (dbMovie != null)
+                //Array of simple movies:
+                List<SimpleMovie> movies = new List<SimpleMovie>();
+
+                // Associate movies with the post
+                foreach (var movieId in postModel.MovieIds)
                 {
-                    var displayMovie = DBMovie.DbMovieToSimpleMovie(dbMovie);
-                    movies.Add(displayMovie);
+                    var movieSelection = new MovieSelection
+                    {
+                        PostId = postModel.NewPost.PostId,
+                        MovieId = movieId
+                    };
+
+                    var dbMovie = await _context.Movies.FindAsync(movieId);
+                    if (dbMovie != null)
+                    {
+                        var displayMovie = DBMovie.DbMovieToSimpleMovie(dbMovie);
+                        movies.Add(displayMovie);
+                    }
+
+                    _context.MovieSelections.Add(movieSelection);
                 }
 
-                _context.MovieSelections.Add(movieSelection);
+                await _context.SaveChangesAsync();
+
+                //Convert to PostDetails model
+                var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
+                if (user.ProfilePicture != null)
+                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+                //append prefix to post image if not null
+                if (postModel.NewPost.Image != null) postModel.NewPost.Image = _imageSettings.ServeLocation + "posts/" + postModel.NewPost.Image;
+                return Ok(new PostDetails
+                {
+                    Post = postModel.NewPost,
+                    UserName = user.UserName,
+                    ProfilePicture = user.ProfilePicture,
+                    Movies = movies
+                });
             }
-
-            await _context.SaveChangesAsync();
-
-            //Convert to PostDetails model
-            var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
-            if (user.ProfilePicture != null)
-                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
-            //append prefix to post image if not null
-            if (postModel.NewPost.Image != null) postModel.NewPost.Image = _imageSettings.ServeLocation + "posts/" + postModel.NewPost.Image;
-            return Ok(new PostDetails
+            catch (Exception ex)
             {
-                Post = postModel.NewPost,
-                UserName = user.UserName,
-                ProfilePicture = user.ProfilePicture,
-                Movies = movies
-            });
+                return BadRequest(ExceptionHandler.HandleException(ex));
+            }
+            
         }
 
         [HttpPost("upload")]
@@ -305,7 +313,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.Message });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -320,28 +328,35 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
 
-            // checks if id token sub matches user id in request
-            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), post.UserId);
-            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            try
+            {
+                // checks if id token sub matches user id in request
+                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), post.UserId);
+                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
-            // Remove the associated movie selections
-            var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
-            _context.MovieSelections.RemoveRange(movieSelections);
+                // Remove the associated movie selections
+                var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
+                _context.MovieSelections.RemoveRange(movieSelections);
 
-            // Remove the associated replies
-            var replies = _context.Replies.Where(r => r.PostId == postId);
-            _context.Replies.RemoveRange(replies);
+                // Remove the associated replies
+                var replies = _context.Replies.Where(r => r.PostId == postId);
+                _context.Replies.RemoveRange(replies);
 
-            // Remove the associated likes
-            var likes = _context.Likes.Where(l => l.PostId == postId);
-            _context.Likes.RemoveRange(likes);
+                // Remove the associated likes
+                var likes = _context.Likes.Where(l => l.PostId == postId);
+                _context.Likes.RemoveRange(likes);
 
-            // Remove the post
-            _context.Posts.Remove(post);
+                // Remove the post
+                _context.Posts.Remove(post);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                return BadRequest(ExceptionHandler.HandleException(exception));
+            }
         }
 
         // PUT: api/<PostsController>/like/{userId}/{likeId}
@@ -352,28 +367,36 @@ namespace Cinematica.API.Controllers
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
-            var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
-
-            if (like == null)
+            try
             {
-                // If the like doesn't exist, create it
-                like = new Like
+                var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+
+                if (like == null)
                 {
-                    PostId = postId,
-                    UserId = userId
-                };
+                    // If the like doesn't exist, create it
+                    like = new Like
+                    {
+                        PostId = postId,
+                        UserId = userId
+                    };
 
-                _context.Likes.Add(like);
+                    _context.Likes.Add(like);
+                }
+                else
+                {
+                    // If the like exists, remove it
+                    _context.Likes.Remove(like);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-            else
+            catch (Exception exception)
             {
-                // If the like exists, remove it
-                _context.Likes.Remove(like);
+                return BadRequest(ExceptionHandler.HandleException(exception));
             }
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            
         }
 
         public class AddPostModel

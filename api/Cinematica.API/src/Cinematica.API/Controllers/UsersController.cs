@@ -59,13 +59,9 @@ namespace Cinematica.API.Controllers
                     following_count,
                 });
             }
-            catch (UserNotFoundException)
-            {
-                return BadRequest(new { message = "User not found." });
-            }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -105,7 +101,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -138,7 +134,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -171,7 +167,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -191,7 +187,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -247,7 +243,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -338,7 +334,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -401,7 +397,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -424,7 +420,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -447,7 +443,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
     }
