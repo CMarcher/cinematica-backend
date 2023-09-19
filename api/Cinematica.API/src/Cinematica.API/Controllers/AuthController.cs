@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
             } 
         }
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -83,7 +83,7 @@ public class AuthController : ControllerBase
             return Ok(new { user_id = user.UserAttributes.ToArray()[0].Value, idToken = result.IdToken, refreshToken = result.RefreshToken });
         }
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -114,7 +114,7 @@ public class AuthController : ControllerBase
             return Ok(new { message = "Verification successful." });
         }
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -142,7 +142,7 @@ public class AuthController : ControllerBase
             }
         }
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -170,7 +170,7 @@ public class AuthController : ControllerBase
             }
         }
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -197,7 +197,7 @@ public class AuthController : ControllerBase
         } 
         
         catch(Exception exception) {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 
@@ -223,7 +223,7 @@ public class AuthController : ControllerBase
 
         catch (Exception exception)
         {
-            return BadRequest(ExceptionHander.HandleException(exception));
+            return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace Cinematica.API.Services
 {
-    public class ExceptionHander
+    public class ExceptionHandler
     {
         public static string HandleException(Exception ex)
         {
@@ -33,7 +33,7 @@ namespace Cinematica.API.Services
                     message = "An invalid password exception has occurred: " + ipwEx.Message;
                     break;
                 case UsernameExistsException uneEx:
-                    message = "A username exsits exception has occurred: " + uneEx.Message;
+                    message = "A username exists exception has occurred: " + uneEx.Message;
                     break;
                 default:
                     message = "An " + ex.GetType().ToString() + "has occurred: " + ex.Message;

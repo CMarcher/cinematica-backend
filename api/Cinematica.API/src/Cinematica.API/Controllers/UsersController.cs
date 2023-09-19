@@ -61,7 +61,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -101,7 +101,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -134,7 +134,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -167,7 +167,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -187,7 +187,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -243,7 +243,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -334,7 +334,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -397,7 +397,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -420,7 +420,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
 
@@ -443,7 +443,7 @@ namespace Cinematica.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(ExceptionHander.HandleException(e));
+                return BadRequest(ExceptionHandler.HandleException(e));
             }
         }
     }
