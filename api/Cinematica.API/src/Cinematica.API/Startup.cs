@@ -108,7 +108,7 @@ public class Startup
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         var imageSettings = Configuration.GetSection("ImageSettings").Get<ImageSettings>();
-        
+
         app.UseStaticFiles();
 
         if (env.IsDevelopment())
@@ -130,7 +130,7 @@ public class Startup
                 RequestPath = "/images"
             });
         }
-        
+
         app.UseExceptionHandler(exceptionHandlerApp =>
         {
             exceptionHandlerApp.Run(async context =>
@@ -157,21 +157,23 @@ public class Startup
             });
 
             app.UseHttpsRedirection();
-       
-        app.UseAuthentication();
 
-        app.UseRouting();
+            app.UseAuthentication();
 
-        app.UseAuthorization();
+            app.UseRouting();
 
-        app.UseCors("AllowReactFrontend");
-        
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-            endpoints.MapGet("/", async context =>
+            app.UseAuthorization();
+
+            app.UseCors("AllowReactFrontend");
+
+            app.UseEndpoints(endpoints =>
             {
-                await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
+                endpoints.MapControllers();
+                endpoints.MapGet("/",
+                    async context =>
+                    {
+                        await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
+                    });
             });
         });
     }
