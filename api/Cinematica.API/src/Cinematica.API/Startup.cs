@@ -13,6 +13,8 @@ using Amazon.AspNetCore.Identity.Cognito;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.CognitoIdentityProvider;
 using Amazon.S3;
+using Microsoft.AspNetCore.Diagnostics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Cinematica.API;
 
@@ -128,8 +130,33 @@ public class Startup
                 RequestPath = "/images"
             });
         }
+        
+        app.UseExceptionHandler(exceptionHandlerApp =>
+        {
+            exceptionHandlerApp.Run(async context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-        app.UseHttpsRedirection();
+                // using static System.Net.Mime.MediaTypeNames;
+                context.Response.ContentType = Text.Plain;
+
+                await context.Response.WriteAsync("An exception was thrown.");
+
+                var exceptionHandlerPathFeature =
+                    context.Features.Get<IExceptionHandlerPathFeature>();
+
+                if (exceptionHandlerPathFeature?.Error is FileNotFoundException)
+                {
+                    await context.Response.WriteAsync(" The file was not found.");
+                }
+
+                if (exceptionHandlerPathFeature?.Path == "/")
+                {
+                    await context.Response.WriteAsync(" Page: Home.");
+                }
+            });
+
+            app.UseHttpsRedirection();
        
         app.UseAuthentication();
 
