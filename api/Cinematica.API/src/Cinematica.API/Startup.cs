@@ -13,6 +13,8 @@ using Amazon.AspNetCore.Identity.Cognito;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.CognitoIdentityProvider;
 using Amazon.S3;
+using Microsoft.AspNetCore.Diagnostics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Cinematica.API;
 
@@ -139,22 +141,49 @@ public class Startup
             });
         }
 
-        app.UseHttpsRedirection();
-       
-        app.UseAuthentication();
-
-        app.UseRouting();
-
-        app.UseAuthorization();
-
-        app.UseCors("AllowReactFrontend");
-        
-        app.UseEndpoints(endpoints =>
+        app.UseExceptionHandler(exceptionHandlerApp =>
         {
-            endpoints.MapControllers();
-            endpoints.MapGet("/", async context =>
+            exceptionHandlerApp.Run(async context =>
             {
-                await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+                // using static System.Net.Mime.MediaTypeNames;
+                context.Response.ContentType = Text.Plain;
+
+                await context.Response.WriteAsync("An exception was thrown.");
+
+                var exceptionHandlerPathFeature =
+                    context.Features.Get<IExceptionHandlerPathFeature>();
+
+                if (exceptionHandlerPathFeature?.Error is FileNotFoundException)
+                {
+                    await context.Response.WriteAsync(" The file was not found.");
+                }
+
+                if (exceptionHandlerPathFeature?.Path == "/")
+                {
+                    await context.Response.WriteAsync(" Page: Home.");
+                }
+            });
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseCors("AllowReactFrontend");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapGet("/",
+                    async context =>
+                    {
+                        await context.Response.WriteAsync("Welcome to running ASP.NET Core on AWS Lambda");
+                    });
             });
         });
     }
