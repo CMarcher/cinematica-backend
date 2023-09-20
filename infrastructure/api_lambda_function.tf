@@ -12,12 +12,21 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
     memory_size = 1024
     package_type = "Zip"
     timeout = 30
+    
+    vpc_config {
+        security_group_ids = [
+            aws_security_group.api_to_rds_security_group.id,
+            aws_security_group.api_internet_access_security_group.id
+        ]
+        subnet_ids = [aws_subnet.backend_api_private_subnet.id]
+    }
 
     environment {
         variables = {
-            DOTNET_DB_HOST = ""
-            DOTNET_DB_USERNAME = ""
-            DOTNET_DB_DATABASE = ""
+            DB_HOST = aws_db_instance.cinematica_database.address
+            DB_USERNAME = aws_db_instance.cinematica_database.username
+            DB_DATABASE = aws_db_instance.cinematica_database.db_name
+            #DB_PASSWORD_ARN = aws_db_instance.cinematica_database.master_user_secret.secret_arn
             ASPNETCORE_ENVIRONMENT = "Production"
             Region = "ap-southeast-2",
             UserPoolId = aws_cognito_user_pool.cinematica_user_pool.id,
