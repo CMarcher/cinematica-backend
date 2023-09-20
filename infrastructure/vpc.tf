@@ -163,6 +163,8 @@ resource "aws_security_group" "api_internet_access_security_group" {
         to_port = 0
         cidr_blocks = ["0.0.0.0/0"]
     }
+    
+    vpc_id = aws_vpc.back_end_vpc.id
 }
 
 resource "aws_subnet" "backend_public_subnet" {
