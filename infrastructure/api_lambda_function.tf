@@ -88,7 +88,8 @@ data "aws_iam_policy_document" "cinematica_api_lambda_policy_document" {
         
         resources = [
             aws_secretsmanager_secret.database_password.arn,
-            aws_secretsmanager_secret.tmdb_api_secret.arn
+            aws_secretsmanager_secret.tmdb_api_secret.arn,
+            "arn:aws:secretsmanager:ap-southeast-2:193018401455:secret:rds!db-0c1c5e3e-d1b3-4237-8e4e-4ad1f5b1cb63-oijpWX"
         ]
     }
     
