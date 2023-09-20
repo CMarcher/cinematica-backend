@@ -26,7 +26,7 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
             DB_HOST = aws_db_instance.cinematica_database.address
             DB_USERNAME = aws_db_instance.cinematica_database.username
             DB_DATABASE = aws_db_instance.cinematica_database.db_name
-            #DB_PASSWORD_ARN = aws_db_instance.cinematica_database.master_user_secret.secret_arn
+            DB_PASSWORD_ARN = aws_db_instance.cinematica_database.master_user_secret.secret_arn
             ASPNETCORE_ENVIRONMENT = "Production"
             Region = "ap-southeast-2",
             UserPoolId = aws_cognito_user_pool.cinematica_user_pool.id,
