@@ -30,7 +30,8 @@ resource "aws_lambda_function" "cinematica_api_lambda" {
             Region = "ap-southeast-2",
             UserPoolId = aws_cognito_user_pool.cinematica_user_pool.id,
             AppClientId = aws_cognito_user_pool_client.cinematica_cognito_client.id,
-            Authority = "https://cognito-idp.ap-southeast-2.amazonaws.com/${aws_cognito_user_pool.cinematica_user_pool.id}"
+            Authority = "https://cognito-idp.ap-southeast-2.amazonaws.com/${aws_cognito_user_pool.cinematica_user_pool.id}",
+            DB_PASSWORD_ARN = "arn:aws:secretsmanager:ap-southeast-2:193018401455:secret:rds!db-0c1c5e3e-d1b3-4237-8e4e-4ad1f5b1cb63-oijpWX"
         }
     }
 
