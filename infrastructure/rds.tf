@@ -5,7 +5,7 @@ resource "aws_db_instance" "cinematica_database" {
     engine_version = "15.3"
     allocated_storage = 20
     db_name = "cinematica"
-    username = "cinematica-admin"
+    username = "cinematica"
     manage_master_user_password = true
     port = 5432
     
