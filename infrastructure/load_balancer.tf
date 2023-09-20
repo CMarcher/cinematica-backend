@@ -19,7 +19,7 @@ resource "aws_lb_listener" "web_app_lb_https_listener" {
         target_group_arn = aws_lb_target_group.web_app_lb_http_target_group.arn
     }
     
-    certificate_arn = aws_acm_certificate.root_domain_certificate.arn
+    certificate_arn = aws_acm_certificate_validation.root_certificate_validation.certificate_arn
 }
 
 resource "aws_lb_listener" "web_app_lb_http_redirect_listener" {
