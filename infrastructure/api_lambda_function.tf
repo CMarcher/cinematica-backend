@@ -117,6 +117,18 @@ data "aws_iam_policy_document" "cinematica_api_lambda_policy_document" {
         actions = ["s3:PutObject"]
         resources = [aws_s3_bucket.media_bucket.arn]
     }
+    
+    statement {
+        effect = "Allow"
+        
+        actions = [
+            "ec2:CreateNetworkInterface",
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DeleteNetworkInterface"
+        ]
+        
+        resources = ["*"]
+    }
 }
 
 resource "aws_iam_role_policy_attachment" "cinematica_api_lambda_log_policy_attachment" {
