@@ -30,9 +30,9 @@ public class LambdaEntryPoint :
     /// <param name="builder"></param>
     protected override void Init(IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((_, builder) => 
+        builder.ConfigureAppConfiguration((context, builder) => 
         {
-            builder.AddSecretsManager("ap-southeast-2", "TMDbApiKey", "DB_PASSWORD");
+            builder.AddSecretsManager("ap-southeast-2", "TMDbApiKey", context.Configuration["DB_PASSWORD_ARN"]);
         })
         .UseStartup<Startup>();
     }

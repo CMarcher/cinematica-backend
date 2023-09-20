@@ -65,7 +65,7 @@ public class Startup
                 options.UseNpgsql($"Host={Configuration["DB_HOST"]};" +
                                   $"Database={Configuration["DB_DATABASE"]};" +
                                   $"Username={Configuration["DB_USERNAME"]};" +
-                                  $"Password={Configuration["DB_PASSWORD"]}");
+                                  $"Password={Configuration[Configuration["DB_PASSWORD_ARN"]]}");
         });
 
         // Add Cognito Identity Provider
