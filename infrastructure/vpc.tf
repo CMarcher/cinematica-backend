@@ -213,6 +213,6 @@ resource "aws_route_table_association" "backend_api_private" {
 
 resource "aws_route_table_association" "backend_db_private" {
     count = 2
-    subnet_id      = aws_subnet.backend_api_private_subnet.*.id
+    subnet_id      = element(aws_subnet.backend_db_private_subnets.*.id, count.index)
     route_table_id = aws_route_table.backend_private.id
 }
