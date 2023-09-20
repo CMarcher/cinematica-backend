@@ -173,7 +173,7 @@ resource "aws_subnet" "backend_api_private_subnet" {
 resource "aws_subnet" "backend_db_private_subnets" {
     count = 2
     cidr_block = cidrsubnet(aws_vpc.back_end_vpc.cidr_block, 8, 3 + count.index)
-    availability_zone = data.aws_availability_zones.available_zones.names[0]
+    availability_zone = data.aws_availability_zones.available_zones.names[count.index]
     vpc_id = aws_vpc.back_end_vpc.id
 }
 
