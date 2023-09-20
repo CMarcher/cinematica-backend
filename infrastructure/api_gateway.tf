@@ -11,7 +11,7 @@ resource "aws_api_gateway_rest_api" "cinematica_api_gateway" {
 resource "aws_api_gateway_domain_name" "cinematica_api_domain" {
   provider = aws.us_east
   domain_name = var.api_domain_name
-  certificate_arn = aws_acm_certificate.api_certificate.arn
+  certificate_arn = aws_acm_certificate_validation.api_certificate_validation.certificate_arn
   security_policy = "TLS_1_2"
 }
 

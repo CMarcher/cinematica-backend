@@ -2,6 +2,10 @@
 
 resource "aws_vpc" "web_app_vpc" {
     cidr_block = "10.0.0.0/16"
+    
+    tags = {
+        Name = "Front-end"
+    }
 }
 
 resource "aws_security_group" "web_app_security_group" {
@@ -107,6 +111,10 @@ resource "aws_route_table_association" "web_app_private" {
 resource "aws_vpc" "back_end_vpc" {
     cidr_block = "10.0.0.0/16"
     enable_dns_hostnames = true
+
+    tags = {
+        Name = "Back-end"
+    }
 }
 
 resource "aws_security_group" "database_to_lambda_security_group" {
