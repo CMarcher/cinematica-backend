@@ -32,7 +32,7 @@ namespace Cinematica.API.Controllers
             _context = context;
             _helper = helperService;
             _imageSettings = imageSettings;
-            _usersFiles = Path.Combine(_imageSettings.UploadLocation, "users");
+            _usersFiles = "users";
         }
 
         // GET api/Users/id
