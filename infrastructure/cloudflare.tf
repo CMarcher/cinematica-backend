@@ -31,10 +31,6 @@ resource "cloudflare_record" "cdn_cinematica_social" {
     zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
     allow_overwrite = true
-    
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "cloudflare_record" "cdn_validation" {
@@ -52,10 +48,6 @@ resource "cloudflare_record" "cdn_validation" {
     zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
     allow_overwrite = true
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "cloudflare_record" "cinematica_social" {
@@ -65,10 +57,6 @@ resource "cloudflare_record" "cinematica_social" {
     zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
     allow_overwrite = true
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "cloudflare_record" "root_validation" {
@@ -86,8 +74,4 @@ resource "cloudflare_record" "root_validation" {
     zone_id = data.cloudflare_zone.cinematica_social.zone_id
     proxied = false
     allow_overwrite = true
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
