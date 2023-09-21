@@ -2,10 +2,6 @@
 
 resource "aws_s3_bucket" "api_lambda_bucket" {
     bucket = "cinematica-api-lambda-source"
-    
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_bucket_versioning" "api_lambda_bucket_versioning" {
@@ -13,10 +9,6 @@ resource "aws_s3_bucket_versioning" "api_lambda_bucket_versioning" {
     
     versioning_configuration {
         status = "Enabled"
-    }
-
-    lifecycle {
-        prevent_destroy = true
     }
 }
 
@@ -29,10 +21,6 @@ resource "aws_s3_bucket_notification" "api_lambda_events" {
 
 resource "aws_s3_bucket" "web_app_bucket" {
     bucket = "cinematica-front-end-source"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_bucket_versioning" "web_app_bucket_versioning" {
@@ -40,10 +28,6 @@ resource "aws_s3_bucket_versioning" "web_app_bucket_versioning" {
 
     versioning_configuration {
         status = "Enabled"
-    }
-
-    lifecycle {
-        prevent_destroy = true
     }
 }
 
@@ -66,30 +50,18 @@ resource "aws_s3_object" "movies_directory" {
     bucket = aws_s3_bucket.media_bucket.id
     key    = "movies/"
     content_type = "application/x-directory"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_object" "posts_directory" {
     bucket = aws_s3_bucket.media_bucket.id
     key    = "posts/"
     content_type = "application/x-directory"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_object" "users_directory" {
     bucket = aws_s3_bucket.media_bucket.id
     key    = "users/"
     content_type = "application/x-directory"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_bucket_policy" "cinematica_media_policy" {
@@ -113,17 +85,9 @@ data "aws_iam_policy_document" "cinematica_media_policy_document" {
 
 resource "aws_s3_bucket" "api_pipeline_artifact_bucket" {
     bucket = "cinematica-api-codepipeline-artifact-store"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 # Front-end pipeline artifact bucket
 resource "aws_s3_bucket" "web_app_pipeline_artifact_bucket" {
     bucket = "cinematica-web-app-codepipeline-artifact-store"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
