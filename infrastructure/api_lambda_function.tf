@@ -117,7 +117,10 @@ data "aws_iam_policy_document" "cinematica_api_lambda_policy_document" {
     statement {
         effect = "Allow"
         actions = ["s3:PutObject"]
-        resources = [aws_s3_bucket.media_bucket.arn]
+        resources = [
+            aws_s3_bucket.media_bucket.arn,
+            "${aws_s3_bucket.media_bucket.arn}/*"
+        ]
     }
     
     statement {
