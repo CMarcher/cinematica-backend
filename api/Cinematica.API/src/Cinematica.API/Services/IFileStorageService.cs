@@ -38,6 +38,6 @@ public class S3FileStorageService : IFileStorageService
             InputStream = file.OpenReadStream()
         };
         await _s3Client.PutObjectAsync(putRequest);
-        return $"https://{_bucketName}.s3.amazonaws.com/{file.FileName}";
+        return file.FileName;
     }
 }
