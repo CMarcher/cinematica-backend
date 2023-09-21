@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -13,6 +14,7 @@ using Amazon.AspNetCore.Identity.Cognito;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.CognitoIdentityProvider;
 using Amazon.S3;
+using Cinematica.API.Models.Database;
 using Microsoft.AspNetCore.Diagnostics;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -62,10 +64,17 @@ public class Startup
             if (Environment.IsDevelopment())
                 options.UseNpgsql(Configuration.GetConnectionString("db-connection-string"));
             else
+            {
+                var secretArn = Configuration["DB_PASSWORD_ARN"];
+                var rawSecret = Configuration[secretArn];
+                var secret = JsonSerializer.Deserialize<Credentials>(rawSecret);
+
                 options.UseNpgsql($"Host={Configuration["DB_HOST"]};" +
                                   $"Database={Configuration["DB_DATABASE"]};" +
                                   $"Username={Configuration["DB_USERNAME"]};" +
-                                  $"Password={Configuration[Configuration["DB_PASSWORD_ARN"]]}");
+                                  $"Password={secret.Password}");
+            }
+                
         });
 
         // Add Cognito Identity Provider
@@ -83,8 +92,8 @@ public class Startup
 
         // Add Cors
         services.AddCors(options => {
-            options.AddPolicy("AllowReactFrontend",
-                builder => builder.WithOrigins("https://localhost:3000", "https://cinematica.social")
+            options.AddPolicy("AllowReactFrontend",builder => builder
+                .WithOrigins("https://localhost:3000", "https://cinematica.social")
                 .AllowAnyMethod()
                 .AllowAnyHeader());
         });
@@ -102,11 +111,11 @@ public class Startup
         })
         .AddJwtBearer(options =>
         {
-            options.Authority = Configuration["AWS:Authority"];
+            options.Authority = Configuration["Authority"];
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer = Configuration["AWS:Authority"],
+                ValidIssuer = options.Authority,
                 ValidateAudience = false
             };
         });
@@ -151,19 +160,6 @@ public class Startup
                 context.Response.ContentType = Text.Plain;
 
                 await context.Response.WriteAsync("An exception was thrown.");
-
-                var exceptionHandlerPathFeature =
-                    context.Features.Get<IExceptionHandlerPathFeature>();
-
-                if (exceptionHandlerPathFeature?.Error is FileNotFoundException)
-                {
-                    await context.Response.WriteAsync(" The file was not found.");
-                }
-
-                if (exceptionHandlerPathFeature?.Path == "/")
-                {
-                    await context.Response.WriteAsync(" Page: Home.");
-                }
             });
         });
 
