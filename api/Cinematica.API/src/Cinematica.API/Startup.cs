@@ -67,7 +67,10 @@ public class Startup
             {
                 var secretArn = Configuration["DB_PASSWORD_ARN"];
                 var rawSecret = Configuration[secretArn];
-                var secret = JsonSerializer.Deserialize<Credentials>(rawSecret);
+                var secret = JsonSerializer.Deserialize<Credentials>(rawSecret, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
                 options.UseNpgsql($"Host={Configuration["DB_HOST"]};" +
                                   $"Database={Configuration["DB_DATABASE"]};" +
