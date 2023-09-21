@@ -162,7 +162,10 @@ public class Startup
                 // using static System.Net.Mime.MediaTypeNames;
                 context.Response.ContentType = Text.Plain;
 
-                await context.Response.WriteAsync("An exception was thrown.");
+                var errorPath = context.Features.Get<IExceptionHandlerPathFeature>();
+
+                Console.Error.WriteLine($"Internal server error thrown from {errorPath.Endpoint}: {errorPath.Error}");
+                await context.Response.WriteAsync("An internal server error has occurred.");
             });
         });
 
