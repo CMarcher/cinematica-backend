@@ -36,12 +36,12 @@ namespace Cinematica.API.Services
                     message = "A username exists exception has occurred: " + uneEx.Message;
                     break;
                 default:
-                    message = "An " + ex.GetType().ToString() + "has occurred: " + ex.Message;
+                    message = "An " + ex.GetType() + " has occurred: " + ex.Message;
                     break;
             }
 
             // Log the error message
-            Console.WriteLine(message);
+            Console.Error.WriteLine($"An error occurred: {ex}");
 
             // Return the type of the exception
             return ex.GetType().ToString();
