@@ -113,7 +113,7 @@ public class AuthController : ControllerBase
 
             return Ok(new { message = "Verification successful." });
         }
-        catch(Exception exception) {
+        catch (Exception exception) {
             return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
@@ -137,11 +137,10 @@ public class AuthController : ControllerBase
                 
                 return Ok(new { message = "Confirmation code has been sent." });
             }
-            else {
-                return BadRequest(new { message = email + " Email not found." });
-            }
+            
+            return BadRequest(new { message = email + " Email not found." });
         }
-        catch(Exception exception) {
+        catch (Exception exception) {
             return BadRequest(ExceptionHandler.HandleException(exception));
         }
     }
@@ -181,7 +180,7 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _helper.FindUserByEmailAddress(model.Email);
-            if(user != null) {
+            if (user != null) {
                 var response = await _cognitoClient.ConfirmForgotPasswordAsync(new ConfirmForgotPasswordRequest
                 {
                     ClientId = _config["AppClientId"],
@@ -189,11 +188,11 @@ public class AuthController : ControllerBase
                     Password = model.Password,
                     ConfirmationCode = model.ConfirmationCode
                 });
+                
                 return Ok(new { message = "Password has been reset." });
             }
-            else {
-                return BadRequest(new { message = "Email not found." });
-            } 
+            
+            return BadRequest(new { message = "Email not found." });
         } 
         
         catch(Exception exception) {
@@ -218,6 +217,7 @@ public class AuthController : ControllerBase
             };
 
             AuthFlowResponse authResponse = await cognitoUser.StartWithRefreshTokenAuthAsync(refreshRequest);
+            
             return Ok( new { idToken = authResponse.AuthenticationResult.IdToken });
         }
 

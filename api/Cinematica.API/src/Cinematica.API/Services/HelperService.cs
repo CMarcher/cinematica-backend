@@ -97,10 +97,8 @@ public class HelperService : IHelperService
             var users = listUsersResponse.Users;
             return users.FirstOrDefault();
         }
-        else
-        {
-            return null;
-        }
+        
+        return null;
     }
 
     // Helper function to find a cognito user by id
@@ -119,10 +117,8 @@ public class HelperService : IHelperService
             var users = listUsersResponse.Users;
             return users.FirstOrDefault();
         }
-        else
-        {
-            return null;
-        }
+        
+        return null;
     }
 
     public Tuple<bool, string> CheckTokenSub(string tokenString, string userId)
@@ -131,12 +127,8 @@ public class HelperService : IHelperService
         string sub = token.Claims.First(c => c.Type == "sub").Value;
 
         if (sub.Equals(userId))
-        {
             return Tuple.Create(true, "");
-        }
-        else
-        {
-            return Tuple.Create(false, "Sub in the IdToken doesn't match user id in request body.");
-        }
+        
+        return Tuple.Create(false, "Sub in the IdToken doesn't match user id in request body.");
     }
 }

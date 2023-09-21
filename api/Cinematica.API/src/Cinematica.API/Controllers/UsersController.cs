@@ -40,69 +40,55 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUser(string userId)
         {
-            try
-            {
-                // get user from postgre database
-                var databaseUser = await _context.Users.SingleOrDefaultAsync(u => u.UserId.Equals(userId));
+            // get user from postgre database
+            var databaseUser = await _context.Users.SingleOrDefaultAsync(u => u.UserId.Equals(userId));
 
-                // get follower and following count
-                var follower_count = _context.UserFollowers.Count(u => u.UserId == userId);
-                var following_count = _context.UserFollowers.Count(u => u.FollowerId == userId);
+            if (databaseUser is null)
+                return NotFound($"The user with ID {userId} could not be found.");
 
-                return Ok(new
-                {
-                    userId,
-                    username = databaseUser.UserName,
-                    profile_picture = _imageSettings.ServeLocation + "users/" + databaseUser.ProfilePicture,
-                    cover_picture = _imageSettings.ServeLocation + "users/" + databaseUser.CoverPicture,
-                    follower_count,
-                    following_count,
-                });
-            }
-            catch (Exception e)
+            // get follower and following count
+            var follower_count = _context.UserFollowers.Count(u => u.UserId == userId);
+            var following_count = _context.UserFollowers.Count(u => u.FollowerId == userId);
+
+            return Ok(new
             {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+                userId,
+                username = databaseUser.UserName,
+                profile_picture = _imageSettings.ServeLocation + "users/" + databaseUser.ProfilePicture,
+                cover_picture = _imageSettings.ServeLocation + "users/" + databaseUser.CoverPicture,
+                follower_count,
+                following_count,
+            });
         }
 
         // POST api/<UsersController>/follow
         [HttpPost("follow")]
         public async Task<IActionResult> Follow([FromBody] UserFollower model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Follow success." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.ToString() });
-            }
+            await _context.AddAsync(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { message = "Follow success." });
         }
 
         // POST api/<UsersController>/unfollow
         [HttpPost("unfollow")]
         public async Task<IActionResult> Unfollow([FromBody] UserFollower model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.FollowerId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Unfollow success." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            _context.Remove(new UserFollower { UserId = model.UserId, FollowerId = model.FollowerId });
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { message = "Unfollow success." });
         }
 
         // GET api/<UsersController>/followers/id
@@ -110,32 +96,25 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetFollowers(string id)
         {
-            try
+            var followersId = await _context.UserFollowers
+                                .Where(u => u.UserId.Contains(id))
+                                .Select(p => p.FollowerId)
+                                .ToListAsync();
+
+            List<dynamic> followers = new List<dynamic>();
+
+            foreach (var fid in followersId)
             {
-                var followersId = await _context.UserFollowers
-                                    .Where(u => u.UserId.Contains(id))
-                                    .Select(p => p.FollowerId)
-                                    .ToListAsync();
+                var user = await _context.Users.FindAsync(fid);
 
-                List<dynamic> followers = new List<dynamic>();
-
-                foreach (var fid in followersId)
+                followers.Add(new
                 {
-                    var user = await _context.Users.FindAsync(fid);
-
-                    followers.Add(new
-                    {
-                        UserId = fid,
-                        Username = user.UserName
-                    });
-                }
-
-                return Ok(followers);
+                    UserId = fid,
+                    Username = user.UserName
+                });
             }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+
+            return Ok(followers);
         }
 
         // GET api/<UsersController>/following/id
@@ -143,72 +122,55 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetFollowing(string id)
         {
-            try
+            var followingIds = await _context.UserFollowers
+                                .Where(u => u.FollowerId.Contains(id))
+                                .Select(p => p.UserId)
+                                .ToListAsync();
+
+            List<dynamic> following = new List<dynamic>();
+
+            foreach (var fid in followingIds)
             {
-                var followingIds = await _context.UserFollowers
-                                    .Where(u => u.FollowerId.Contains(id))
-                                    .Select(p => p.UserId)
-                                    .ToListAsync();
+                var user = await _context.Users.FindAsync(fid);
 
-                List<dynamic> following = new List<dynamic>();
-
-                foreach (var fid in followingIds)
+                following.Add(new
                 {
-                    var user = await _context.Users.FindAsync(fid);
-
-                    following.Add(new
-                    {
-                        UserId = fid,
-                        Username = user.UserName
-                    });
-                }
-
-                return Ok(following);
+                    UserId = fid,
+                    Username = user.UserName
+                });
             }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+
+            return Ok(following);
         }
 
         // POST api/<UsersController>/add-movie
         [HttpPost("add-movie")]
         public async Task<IActionResult> AddMovie([FromBody] UserMovie model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                await _context.AddAsync(model);
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Movie successfully added to user." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            await _context.AddAsync(model);
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { message = "Movie successfully added to user." });
         }
 
         // POST api/<UsersController>/remove-movie
         [HttpPost("remove-movie")]
         public async Task<IActionResult> RemoveMovie([FromBody] UserMovie model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                _context.Remove(model);
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Successfully removed movie from user." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.ToString() });
-            }
+            _context.Remove(model);
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { message = "Successfully removed movie from user." });
         }
 
         // GET api/<UsersController>/movies/id
@@ -216,35 +178,28 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUserMovies(string id)
         {
-            try
+            // gets the movie ids that a user has
+            var movies = await _context.UserMovies
+                                .Where(u => u.UserId.Contains(id))
+                                .Select(p => p.MovieId)
+                                .ToListAsync();
+
+            // creates a list of anonymous objects to store simple movie details to return to client
+            List<dynamic> simpleMoviesList = new List<dynamic>();
+
+            foreach (var movie in movies)
             {
-                // gets the movie ids that a user has
-                var movies = await _context.UserMovies
-                                    .Where(u => u.UserId.Contains(id))
-                                    .Select(p => p.MovieId)
-                                    .ToListAsync();
+                var dbMovie = _context.Movies.Find(movie);
 
-                // creates a list of anonymous objects to store simple movie details to return to client
-                List<dynamic> simpleMoviesList = new List<dynamic>();
-
-                foreach (var movie in movies)
+                simpleMoviesList.Add(new
                 {
-                    var dbMovie = _context.Movies.Find(movie);
-
-                    simpleMoviesList.Add(new
-                    {
-                        Id = movie,
-                        Title = dbMovie.Title,
-                        ReleaseYear = dbMovie.ReleaseDate?.Year.ToString()
-                    });
-                }
-
-                return Ok(simpleMoviesList);
+                    Id = movie,
+                    Title = dbMovie.Title,
+                    ReleaseYear = dbMovie.ReleaseDate?.Year.ToString()
+                });
             }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+
+            return Ok(simpleMoviesList);
         }
 
         // GET api/<UsersController>/posts/id
@@ -254,7 +209,9 @@ namespace Cinematica.API.Controllers
         {
             var user = await _context.Users.FindAsync(userId);
 
-            if (user == null) return BadRequest(new { message = "User such user" });
+            if (user == null) 
+                return BadRequest(new { message = "No such user" });
+            
             if (user.ProfilePicture != null)
                 user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
 
@@ -265,7 +222,8 @@ namespace Cinematica.API.Controllers
                         .Take(10)
                         .ToListAsync();
 
-            if (posts == null) return BadRequest(new { message = "No posts found" });
+            if (posts is null)
+                return Ok(new List<Post>());
 
             // creates a list of anonymous objects to store the replies to return to client
             List<PostDetails> postsList = new List<PostDetails>();
@@ -305,37 +263,31 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUserReplies(string id, int page)
         {
-            try
+            var replies = await _context.Replies
+                                .Where(u => u.UserId.Contains(id))
+                                .OrderByDescending(p => p.CreatedAt)
+                                .Skip((page - 1) * 10)
+                                .Select(r => new { r.ReplyId, r.PostId, r.Body, r.CreatedAt })
+                                .Take(10)
+                                .ToListAsync();
+
+            // creates a list of anonymous objects to store the replies to return to client
+            List<dynamic> repliesList = new List<dynamic>();
+
+            foreach (var reply in replies)
             {
-                var replies = await _context.Replies
-                                    .Where(u => u.UserId.Contains(id))
-                                    .OrderByDescending(p => p.CreatedAt)
-                                    .Skip((page - 1) * 10)
-                                    .Select(r => new { r.ReplyId, r.PostId, r.Body, r.CreatedAt })
-                                    .Take(10)
-                                    .ToListAsync();
+                var likesCount = _context.Likes.Count(l => l.ReplyId == reply.ReplyId);
+                var youLike = _context.Likes.Any(l => l.ReplyId == reply.ReplyId && l.UserId == id);
 
-                // creates a list of anonymous objects to store the replies to return to client
-                List<dynamic> repliesList = new List<dynamic>();
-
-                foreach (var reply in replies)
+                repliesList.Add(new
                 {
-                    var likesCount = _context.Likes.Count(l => l.ReplyId == reply.ReplyId);
-                    var youLike = _context.Likes.Any(l => l.ReplyId == reply.ReplyId && l.UserId == id);
-
-                    repliesList.Add(new
-                    {
-                        Reply = reply,
-                        LikesCount = likesCount,
-                        YouLike = youLike
-                    });
-                }
-                return Ok(repliesList);
+                    Reply = reply,
+                    LikesCount = likesCount,
+                    YouLike = youLike
+                });
             }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            
+            return Ok(repliesList);
         }
 
         // GET api/<UsersController>/replies/id
@@ -343,108 +295,90 @@ namespace Cinematica.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUserLikes(string id, int page)
         {
-            try
+            var likes = await _context.Likes
+                                .Where(u => u.UserId.Contains(id))
+                                .OrderByDescending(l => l.LikeId)
+                                .Skip((page - 1) * 10)
+                                .Select(p => new { p.LikeId, p.PostId, p.ReplyId })
+                                .Take(10)
+                                .ToListAsync();
+
+            // creates a list of anonymous objects to store the replies to return to client
+            List<dynamic> likedPosts = new List<dynamic>();
+
+            foreach (var like in likes)
             {
-                var likes = await _context.Likes
-                                    .Where(u => u.UserId.Contains(id))
-                                    .OrderByDescending(l => l.LikeId)
-                                    .Skip((page - 1) * 10)
-                                    .Select(p => new { p.LikeId, p.PostId, p.ReplyId })
-                                    .Take(10)
-                                    .ToListAsync();
-
-                // creates a list of anonymous objects to store the replies to return to client
-                List<dynamic> likedPosts = new List<dynamic>();
-
-                foreach (var like in likes)
+                if (like.ReplyId != null)
                 {
-                    if (like.ReplyId != null)
-                    {
-                        var likedReply = await _context.Replies.FindAsync(like.ReplyId);
-                        var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
-                        var replyUser = await _context.Users.FindAsync(likedReply.UserId);
+                    var likedReply = await _context.Replies.FindAsync(like.ReplyId);
+                    var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
+                    var replyUser = await _context.Users.FindAsync(likedReply.UserId);
 
-                        likedPosts.Add(new
-                        {
-                            replyUser = replyUser.UserName,
-                            replyProfilePicture = replyUser.ProfilePicture,
-                            replyId = likedReply.ReplyId,
-                            replyBody = likedReply.Body,
-                            createdAt = likedReply.CreatedAt,
-                            likesCount = likesCount
-                        });
-                    }
-                    else
+                    likedPosts.Add(new
                     {
-                        var likedPost = await _context.Posts.FindAsync(like.PostId);
-                        var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
-                        var postUser = await _context.Users.FindAsync(likedPost.UserId);
-
-                        likedPosts.Add(new
-                        {
-                            postUser = postUser.UserName,
-                            postProfilePicture = postUser.ProfilePicture,
-                            postId = likedPost.PostId,
-                            postBody = likedPost.Body,
-                            image = likedPost.Image,
-                            created_at = likedPost.CreatedAt,
-                            likesCount = likesCount
-                        });
-                    }
+                        replyUser = replyUser.UserName,
+                        replyProfilePicture = replyUser.ProfilePicture,
+                        replyId = likedReply.ReplyId,
+                        replyBody = likedReply.Body,
+                        createdAt = likedReply.CreatedAt,
+                        likesCount = likesCount
+                    });
                 }
+                else
+                {
+                    var likedPost = await _context.Posts.FindAsync(like.PostId);
+                    var likesCount = await _context.Likes.CountAsync(l => l.ReplyId == like.ReplyId);
+                    var postUser = await _context.Users.FindAsync(likedPost.UserId);
 
-                return Ok(likedPosts);
+                    likedPosts.Add(new
+                    {
+                        postUser = postUser.UserName,
+                        postProfilePicture = postUser.ProfilePicture,
+                        postId = likedPost.PostId,
+                        postBody = likedPost.Body,
+                        image = likedPost.Image,
+                        created_at = likedPost.CreatedAt,
+                        likesCount = likesCount
+                    });
+                }
             }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+
+            return Ok(likedPosts);
         }
 
         // POST api/<UsersController>/set-profile-picture
         [HttpPost("set-profile-picture")]
         public async Task<IActionResult> SetProfilePicture([FromForm] SetPictureRequest model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                var user = await _context.Users.FindAsync(model.UserId);
-                var filepath = await _helper.UploadFile(model.File, _usersFiles);
-                user.ProfilePicture = filepath;
-                await _context.SaveChangesAsync();
+            var user = await _context.Users.FindAsync(model.UserId);
+            var filepath = await _helper.UploadFile(model.File, _usersFiles);
+            user.ProfilePicture = filepath;
+            await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Profile picture successfully set." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            return Ok(new { message = "Profile picture successfully set." });
         }
 
         // POST api/<UsersController>/set-cover-picture
         [HttpPost("set-cover-picture")]
         public async Task<IActionResult> SetCoverPicture([FromForm] SetPictureRequest model)
         {
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
-                var user = await _context.Users.FindAsync(model.UserId);
-                var filepath = await _helper.UploadFile(model.File, _usersFiles);
-                user.CoverPicture = filepath;
-                await _context.SaveChangesAsync();
+            var user = await _context.Users.FindAsync(model.UserId);
+            var filepath = await _helper.UploadFile(model.File, _usersFiles);
+            user.CoverPicture = filepath;
+            
+            await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cover picture successfully set." });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            return Ok(new { message = "Cover picture successfully set." });
         }
     }
 }

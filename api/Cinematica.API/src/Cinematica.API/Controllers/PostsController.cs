@@ -238,61 +238,54 @@ namespace Cinematica.API.Controllers
         {
             // checks if id token sub matches user id in request
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), postModel.NewPost.UserId);
-            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            if (!valid.Item1) 
+                return Unauthorized(new { message = valid.Item2 });
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            try
+            _context.Posts.Add(postModel.NewPost);
+            await _context.SaveChangesAsync();
+
+            //Array of simple movies:
+            List<SimpleMovie> movies = new List<SimpleMovie>();
+
+            // Associate movies with the post
+            foreach (var movieId in postModel.MovieIds)
             {
-                _context.Posts.Add(postModel.NewPost);
-                await _context.SaveChangesAsync();
-
-                //Array of simple movies:
-                List<SimpleMovie> movies = new List<SimpleMovie>();
-
-                // Associate movies with the post
-                foreach (var movieId in postModel.MovieIds)
+                var movieSelection = new MovieSelection
                 {
-                    var movieSelection = new MovieSelection
-                    {
-                        PostId = postModel.NewPost.PostId,
-                        MovieId = movieId
-                    };
+                    PostId = postModel.NewPost.PostId,
+                    MovieId = movieId
+                };
 
-                    var dbMovie = await _context.Movies.FindAsync(movieId);
-                    if (dbMovie != null)
-                    {
-                        var displayMovie = DBMovie.DbMovieToSimpleMovie(dbMovie);
-                        movies.Add(displayMovie);
-                    }
-
-                    _context.MovieSelections.Add(movieSelection);
+                var dbMovie = await _context.Movies.FindAsync(movieId);
+                if (dbMovie != null)
+                {
+                    var displayMovie = DBMovie.DbMovieToSimpleMovie(dbMovie);
+                    movies.Add(displayMovie);
                 }
 
-                await _context.SaveChangesAsync();
+                _context.MovieSelections.Add(movieSelection);
+            }
 
-                //Convert to PostDetails model
-                var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
-                if (user.ProfilePicture != null)
-                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
-                //append prefix to post image if not null
-                if (postModel.NewPost.Image != null) postModel.NewPost.Image = _imageSettings.ServeLocation + "posts/" + postModel.NewPost.Image;
-                return Ok(new PostDetails
-                {
-                    Post = postModel.NewPost,
-                    UserName = user.UserName,
-                    ProfilePicture = user.ProfilePicture,
-                    Movies = movies
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ExceptionHandler.HandleException(ex));
-            }
+            await _context.SaveChangesAsync();
+
+            //Convert to PostDetails model
+            var user = await _context.Users.FindAsync(postModel.NewPost.UserId);
+            if (user.ProfilePicture != null)
+                user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+            //append prefix to post image if not null
+            if (postModel.NewPost.Image != null) 
+                postModel.NewPost.Image = _imageSettings.ServeLocation + "posts/" + postModel.NewPost.Image;
             
+            return Ok(new PostDetails
+            {
+                Post = postModel.NewPost,
+                UserName = user.UserName,
+                ProfilePicture = user.ProfilePicture,
+                Movies = movies
+            });
         }
 
         [HttpPost("upload")]
@@ -300,63 +293,44 @@ namespace Cinematica.API.Controllers
         public async Task<IActionResult> UploadPostImage(IFormFile imageFile)
         {
             if (imageFile == null)
-            {
                 return BadRequest(new { message = "No file uploaded." });
-            }
 
-            try
-            {
-                var fileName = await _helper.UploadFile(imageFile, _postFiles);
+            var fileName = await _helper.UploadFile(imageFile, _postFiles);
 
-                // Return the new filename
-                return Ok(new { FileName = fileName });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(ExceptionHandler.HandleException(e));
-            }
+            // Return the new filename
+            return Ok(new { FileName = fileName });
         }
 
         // DELETE api/<PostsController>/5
         [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(long postId)
         {
-
             var post = await _context.Posts.FindAsync(postId);
-            if (post == null)
-            {
+            if (post is null)
                 return NotFound();
-            }
+            
+            // checks if id token sub matches user id in request
+            var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), post.UserId);
+            if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
 
-            try
-            {
-                // checks if id token sub matches user id in request
-                var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), post.UserId);
-                if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
+            // Remove the associated movie selections
+            var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
+            _context.MovieSelections.RemoveRange(movieSelections);
 
-                // Remove the associated movie selections
-                var movieSelections = _context.MovieSelections.Where(m => m.PostId == postId);
-                _context.MovieSelections.RemoveRange(movieSelections);
+            // Remove the associated replies
+            var replies = _context.Replies.Where(r => r.PostId == postId);
+            _context.Replies.RemoveRange(replies);
 
-                // Remove the associated replies
-                var replies = _context.Replies.Where(r => r.PostId == postId);
-                _context.Replies.RemoveRange(replies);
+            // Remove the associated likes
+            var likes = _context.Likes.Where(l => l.PostId == postId);
+            _context.Likes.RemoveRange(likes);
 
-                // Remove the associated likes
-                var likes = _context.Likes.Where(l => l.PostId == postId);
-                _context.Likes.RemoveRange(likes);
+            // Remove the post
+            _context.Posts.Remove(post);
 
-                // Remove the post
-                _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
 
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(ExceptionHandler.HandleException(exception));
-            }
+            return NoContent();
         }
 
         // PUT: api/<PostsController>/like/{userId}/{likeId}
@@ -366,37 +340,29 @@ namespace Cinematica.API.Controllers
             // checks if id token sub matches user id in request
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), userId);
             if (!valid.Item1) return Unauthorized(new { message = valid.Item2 });
-
-            try
-            {
-                var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
-
-                if (like == null)
-                {
-                    // If the like doesn't exist, create it
-                    like = new Like
-                    {
-                        PostId = postId,
-                        UserId = userId
-                    };
-
-                    _context.Likes.Add(like);
-                }
-                else
-                {
-                    // If the like exists, remove it
-                    _context.Likes.Remove(like);
-                }
-
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(ExceptionHandler.HandleException(exception));
-            }
             
+            var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+
+            if (like == null)
+            {
+                // If the like doesn't exist, create it
+                like = new Like
+                {
+                    PostId = postId,
+                    UserId = userId
+                };
+
+                _context.Likes.Add(like);
+            }
+            else
+            {
+                // If the like exists, remove it
+                _context.Likes.Remove(like);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         public class AddPostModel
