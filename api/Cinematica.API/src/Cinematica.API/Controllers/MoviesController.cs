@@ -30,7 +30,7 @@ public class MoviesController : ControllerBase
         _tmdbClient = tmdbClient;
         _helper = helperService;
         _imageSettings = imageSettings;
-        _movieFiles = Path.Combine(_imageSettings.UploadLocation, "movies");
+        _movieFiles = "movies";
     }
 
     // GET: api/<MoviesController>/{searchTerm}

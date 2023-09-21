@@ -28,7 +28,7 @@ namespace Cinematica.API.Controllers
             _context = context;
             _helper = helperService;
             _imageSettings = imageSettings;
-            _postFiles = Path.Combine(_imageSettings.UploadLocation, "posts");
+            _postFiles = "posts";
         }
 
         // GET api/<PostsController>/5

@@ -52,7 +52,7 @@ public class Startup
         else
         {
             var s3Client = new AmazonS3Client();
-            services.AddSingleton<IFileStorageService>(new S3FileStorageService(s3Client, "cinematica-media"));
+            services.AddSingleton<IFileStorageService>(new S3FileStorageService(s3Client, imageSettings.UploadLocation));
         }
 
         services.AddSingleton(imageSettings);
