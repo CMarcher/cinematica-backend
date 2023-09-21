@@ -56,9 +56,7 @@ public class Startup
         }
 
         services.AddSingleton(imageSettings);
-
-        services.AddControllers();
-
+        
         services.AddDbContext<DataContext>(options =>
         {
             if (Environment.IsDevelopment())
@@ -124,6 +122,7 @@ public class Startup
         });
         
         services.AddScoped<IHelperService, HelperService>();
+        services.AddControllers();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline

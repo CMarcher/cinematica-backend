@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 public partial class DataContext : DbContext
 {
-    protected readonly IConfiguration Configuration;
-
-    public DataContext(IConfiguration configuration, DbContextOptions<DbContext> context) : base(context)
+    public DataContext(DbContextOptions<DataContext> context) : base(context)
     {
-        Configuration = configuration;
     }
 
     public virtual DbSet<CastMember> CastMembers { get; set; }
