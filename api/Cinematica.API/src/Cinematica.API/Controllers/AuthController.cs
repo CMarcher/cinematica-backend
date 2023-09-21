@@ -20,8 +20,9 @@ public class AuthController : ControllerBase
     private DataContext _context;
     private AmazonCognitoIdentityProviderClient _cognitoClient;
 
-    public AuthController(IConfiguration config, IHelperService helperService, DataContext context, AmazonCognitoIdentityProviderClient client) {
-        _config = config.GetSection("AWS");
+    public AuthController(IConfiguration config, IHelperService helperService, DataContext context, AmazonCognitoIdentityProviderClient client)
+    {
+        _config = config;
         _context = context;
         _helper = helperService;
         _cognitoClient = client;
