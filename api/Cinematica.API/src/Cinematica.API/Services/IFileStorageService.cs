@@ -1,5 +1,6 @@
 ﻿using Amazon.S3.Model;
 using Amazon.S3;
+using Amazon.S3.Transfer;
 
 namespace Cinematica.API.Services;
 
@@ -31,13 +32,18 @@ public class S3FileStorageService : IFileStorageService
 
     public async Task<string> SaveFileAsync(IFormFile file)
     {
-        var putRequest = new PutObjectRequest
+        var uploadRequest = new TransferUtilityUploadRequest
         {
-            BucketName = _bucketName,
+            InputStream = file.OpenReadStream(),
             Key = file.FileName,
-            InputStream = file.OpenReadStream()
+            BucketName = _bucketName
         };
-        await _s3Client.PutObjectAsync(putRequest);
+
+        using (var fileTransferUtility = new TransferUtility(_s3Client))
+        {
+            await fileTransferUtility.UploadAsync(uploadRequest);
+        }
+        
         return file.FileName;
     }
 }
