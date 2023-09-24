@@ -64,15 +64,20 @@ public class HelperService : IHelperService
         {
             throw new ArgumentException("No file uploaded.");
         }
+        
+        Console.WriteLine($"Size of file being uploaded is {file.Length / 1024} KiB.");
 
         // Generate a unique filename
-        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
 
         // Combine the savePath and the unique filename
         string fullPath = Path.Combine(savePath, fileName);
-
-        var fileStream = file.OpenReadStream();
-        IFormFile newFile = new FormFile(fileStream, 0, file.Length, null, fullPath);
+        
+        using var uploadStream = new MemoryStream();
+        await file.CopyToAsync(uploadStream);
+        uploadStream.Seek(0, SeekOrigin.Begin);
+        
+        IFormFile newFile = new FormFile(uploadStream, 0, uploadStream.Length, null, fullPath);
 
         //save file using IFileStorageService
         await _fileStorageService.SaveFileAsync(newFile);
