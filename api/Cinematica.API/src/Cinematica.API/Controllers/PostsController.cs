@@ -228,6 +228,9 @@ namespace Cinematica.API.Controllers
                     .Where(m => m.PostId == post.PostId)
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
+
+                //Get user details
+                var user = await _context.Users.FindAsync(post.UserId);
                 if (post.User.ProfilePicture != null)
                     postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
 
