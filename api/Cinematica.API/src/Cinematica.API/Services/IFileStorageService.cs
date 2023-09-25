@@ -10,7 +10,7 @@ public interface IFileStorageService
 
 public class LocalFileStorageService : IFileStorageService
 {
-    private ImageSettings _imageSettings;
+    private readonly ImageSettings _imageSettings;
 
     public LocalFileStorageService(ImageSettings imageSettings)
     {
