@@ -5,16 +5,24 @@ namespace Cinematica.API.Services;
 
 public interface IFileStorageService
 {
-    Task<string> SaveFileAsync(IFormFile file);
+    Task<string> SaveFileAsync(IFormFile file, string path);
 }
 
 public class LocalFileStorageService : IFileStorageService
 {
-    public async Task<string> SaveFileAsync(IFormFile file)
+    public async Task<string> SaveFileAsync(IFormFile file, string path)
     {
-        await using var stream = new FileStream(file.FileName, FileMode.Create);
+        // Generate a unique filename
+        string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+
+        // Combine the savePath and the unique filename
+        var fullPath = Path.Combine(path, fileName);
+
+        await using var stream = new FileStream(fullPath, FileMode.Create);
+        
         await file.CopyToAsync(stream);
-        return file.FileName;
+        
+        return fileName;
     }
 }
 
@@ -29,15 +37,21 @@ public class S3FileStorageService : IFileStorageService
         _bucketName = bucketName;
     }
 
-    public async Task<string> SaveFileAsync(IFormFile file)
+    public async Task<string> SaveFileAsync(IFormFile file, string path)
     {
+        // Generate a unique filename
+        string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+
+        // Combine the savePath and the unique filename
+        var fullPath = Path.Combine(path, fileName);
+
         var putRequest = new PutObjectRequest
         {
             BucketName = _bucketName,
-            Key = file.FileName,
+            Key = fullPath,
             InputStream = file.OpenReadStream()
         };
         await _s3Client.PutObjectAsync(putRequest);
-        return file.FileName;
+        return fileName;
     }
 }
