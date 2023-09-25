@@ -10,8 +10,9 @@ namespace Cinematica.API.Services;
 
 public interface IHelperService
 {
-    Task<string> UploadFile(IFormFile file, string savePath);
+    Task<string> UploadFile(string file, string savePath, string fileExt);
     Task<string> DownloadFile(string url, string savePath);
+    string GetExtension(string contentType);
     Task<UserType?> FindUserByEmailAddress(string emailAddress);
     Task<UserType?> GetCognitoUser(string id);
     Tuple<bool, string> CheckTokenSub(string tokenString, string userId);
@@ -49,17 +50,30 @@ public class HelperService : IHelperService
         }
     }
 
-    public async Task<string> UploadFile(IFormFile file, string savePath)
+    public async Task<string> UploadFile(string file, string savePath, string fileExt)
     {
         if (file == null || file.Length == 0)
         {
             throw new ArgumentException("No file uploaded.");
         }
-        
+
+        // Convert base64 string to byte array
+        var imageBytes = Convert.FromBase64String(file);
+
+        // Save the byte array to a memory stream
+        await using var memoryStream = new MemoryStream(imageBytes);
+
+        // Convert MemoryStream to IFormFile
+        var savefile = new FormFile(memoryStream, 0, memoryStream.Length, null, "image" + fileExt)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpeg"
+        };
+
         Console.WriteLine($"Size of file being uploaded is {file.Length / 1024} KiB.");
 
         // Return the new filename
-        return await _fileStorageService.SaveFileAsync(file, savePath);
+        return await _fileStorageService.SaveFileAsync(savefile, savePath);
     }
 
     // Helper function to find a user by email address (assuming that email is unique)
@@ -111,5 +125,20 @@ public class HelperService : IHelperService
             return Tuple.Create(true, "");
         
         return Tuple.Create(false, "Sub in the IdToken doesn't match user id in request body.");
+    }
+
+    public string GetExtension(string contentType)
+    {
+        switch (contentType)
+        {
+            case "image/jpeg":
+                return ".jpg";
+            case "image/png":
+                return ".png";
+            case "image/gif":
+                return ".gif";
+            default:
+                throw new ArgumentException("Content type not recognized.", nameof(contentType));
+        }
     }
 }
