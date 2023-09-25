@@ -348,25 +348,14 @@ namespace Cinematica.API.Controllers
 
         [HttpPost("upload")]
         [AllowAnonymous]
-        public async Task<IActionResult> UploadPostImage(string imageFile)
+        public async Task<IActionResult> UploadPostImage(ImageModel imageFile)
         {
-            if (imageFile == null)
+            if (imageFile.fileData == null)
                 return BadRequest(new { message = "No file uploaded." });
 
-            // Convert base64 string to byte array
-            var imageBytes = Convert.FromBase64String(imageFile);
-
-            // Save the byte array to a memory stream
-            await using var memoryStream = new MemoryStream(imageBytes);
-
-            // Convert MemoryStream to IFormFile
-            var file = new FormFile(memoryStream, 0, memoryStream.Length, null, "image.jpg")
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = "image/jpeg"
-            };
-
-            var fileName = await _helper.UploadFile(file, _postFiles);
+            var extension = _helper.GetExtension(imageFile.ContentType);
+            
+            var fileName = await _helper.UploadFile(imageFile.fileData, _postFiles, extension);
 
             // Return the new filename
             return Ok(new { FileName = fileName });
@@ -440,6 +429,12 @@ namespace Cinematica.API.Controllers
         {
             public Post NewPost { get; set; }
             public int[] MovieIds { get; set; }
+        }
+
+        public class ImageModel
+        {
+            public string fileData { get; set; }
+            public string ContentType { get; set; }
         }
     }
 }
