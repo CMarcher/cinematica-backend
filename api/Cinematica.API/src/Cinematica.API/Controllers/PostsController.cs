@@ -96,6 +96,13 @@ namespace Cinematica.API.Controllers
 
             var postDetailsList = new List<PostDetails>();
 
+            var users = posts.Select(p => p.User).Distinct().ToList();
+            foreach (var user in users)
+            {
+                if (user.ProfilePicture != null)
+                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+            }
+
             foreach (var post in posts)
             {
                 var postDetails = new PostDetails();
@@ -117,9 +124,7 @@ namespace Cinematica.API.Controllers
                     .Where(m => m.PostId == post.PostId)
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
-                if (post.User.ProfilePicture != null)
-                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-
+                
                 postDetailsList.Add(postDetails);
             }
 
@@ -155,6 +160,13 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
 
+            var users = posts.Select(p => p.User).Distinct().ToList();
+            foreach (var user in users)
+            {
+                if (user.ProfilePicture != null)
+                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+            }
+
             var postDetailsList = new List<PostDetails>();
 
             foreach (var post in posts)
@@ -178,9 +190,7 @@ namespace Cinematica.API.Controllers
                     .Where(m => m.PostId == post.PostId)
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
-                if (post.User.ProfilePicture != null)
-                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-
+                
                 postDetailsList.Add(postDetails);
             }
 
@@ -206,6 +216,13 @@ namespace Cinematica.API.Controllers
                 return NotFound();
             }
 
+            var users = posts.Select(p => p.User).Distinct().ToList();
+            foreach (var user in users)
+            {
+                if (user.ProfilePicture != null)
+                    user.ProfilePicture = _imageSettings.ServeLocation + "users/" + user.ProfilePicture;
+            }
+
             var postDetailsList = new List<PostDetails>();
 
             foreach (var post in posts)
@@ -228,9 +245,7 @@ namespace Cinematica.API.Controllers
                     .Where(m => m.PostId == post.PostId)
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
-                if (post.User.ProfilePicture != null)
-                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-
+                
                 postDetailsList.Add(postDetails);
             }
 
