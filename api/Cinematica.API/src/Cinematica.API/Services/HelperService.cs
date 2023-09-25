@@ -37,20 +37,11 @@ public class HelperService : IHelperService
 
         if (response.IsSuccessStatusCode)
         {
-            // Generate a unique filename with the original file extension
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(url);
-
-            // Combine the savePath and the unique filename
-            var fullPath = Path.Combine(savePath, fileName);
-
             var stream = await response.Content.ReadAsStreamAsync();
-            IFormFile file = new FormFile(stream, 0, stream.Length, null, fullPath);
-
-            //save file using IFileStorageService
-            await _fileStorageService.SaveFileAsync(file);
+            IFormFile file = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(url));
 
             // Return the new filename
-            return fileName;
+            return await _fileStorageService.SaveFileAsync(file, savePath);
         }
         else
         {
@@ -67,23 +58,8 @@ public class HelperService : IHelperService
         
         Console.WriteLine($"Size of file being uploaded is {file.Length / 1024} KiB.");
 
-        // Generate a unique filename
-        string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-
-        // Combine the savePath and the unique filename
-        string fullPath = Path.Combine(savePath, fileName);
-        
-        using var uploadStream = new MemoryStream();
-        await file.CopyToAsync(uploadStream);
-        uploadStream.Seek(0, SeekOrigin.Begin);
-        
-        IFormFile newFile = new FormFile(uploadStream, 0, uploadStream.Length, null, fullPath);
-
-        //save file using IFileStorageService
-        await _fileStorageService.SaveFileAsync(newFile);
-
         // Return the new filename
-        return fileName;
+        return await _fileStorageService.SaveFileAsync(file, savePath);
     }
 
     // Helper function to find a user by email address (assuming that email is unique)
