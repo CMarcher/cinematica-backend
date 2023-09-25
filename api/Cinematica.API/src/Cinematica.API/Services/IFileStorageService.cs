@@ -10,12 +10,15 @@ public interface IFileStorageService
 
 public class LocalFileStorageService : IFileStorageService
 {
+
     private readonly ImageSettings _imageSettings;
 
     public LocalFileStorageService(ImageSettings imageSettings)
     {
         _imageSettings = imageSettings;
     }
+
+
 
     public async Task<string> SaveFileAsync(IFormFile file, string path)
     {

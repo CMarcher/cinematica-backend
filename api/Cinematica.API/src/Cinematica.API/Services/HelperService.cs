@@ -77,6 +77,7 @@ public class HelperService : IHelperService
 
         // Return the new filename
         return await _fileStorageService.SaveFileAsync(savefile, savePath);
+
     }
 
     // Helper function to find a user by email address (assuming that email is unique)
