@@ -353,9 +353,7 @@ namespace Cinematica.API.Controllers
             if (imageFile.fileData == null)
                 return BadRequest(new { message = "No file uploaded." });
 
-            var extension = _helper.GetExtension(imageFile.ContentType);
-            
-            var fileName = await _helper.UploadFile(imageFile.fileData, _postFiles, extension);
+            var fileName = await _helper.UploadFile(imageFile, _postFiles);
 
             // Return the new filename
             return Ok(new { FileName = fileName });
@@ -429,12 +427,6 @@ namespace Cinematica.API.Controllers
         {
             public Post NewPost { get; set; }
             public int[] MovieIds { get; set; }
-        }
-
-        public class ImageModel
-        {
-            public string fileData { get; set; }
-            public string ContentType { get; set; }
         }
     }
 }
