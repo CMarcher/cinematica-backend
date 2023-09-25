@@ -118,8 +118,7 @@ namespace Cinematica.API.Controllers
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
                 if (post.User.ProfilePicture != null)
-                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-                postDetails.ProfilePicture = post.User.ProfilePicture;
+                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
 
                 postDetailsList.Add(postDetails);
             }
@@ -180,8 +179,7 @@ namespace Cinematica.API.Controllers
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
                 if (post.User.ProfilePicture != null)
-                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-                postDetails.ProfilePicture = post.User.ProfilePicture;
+                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
 
                 postDetailsList.Add(postDetails);
             }
@@ -231,8 +229,7 @@ namespace Cinematica.API.Controllers
                     .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                     .ToListAsync();
                 if (post.User.ProfilePicture != null)
-                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
-                postDetails.ProfilePicture = post.User.ProfilePicture;
+                    postDetails.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
 
                 postDetailsList.Add(postDetails);
             }
