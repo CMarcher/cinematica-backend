@@ -5,13 +5,15 @@ using Amazon.Extensions.CognitoAuthentication;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Amazon;
+using Cinematica.API.Models.Display;
 
 namespace Cinematica.API.Services;
 
 public interface IHelperService
 {
-    Task<string> UploadFile(IFormFile file, string savePath);
+    Task<string> UploadFile(ImageModel file, string savePath);
     Task<string> DownloadFile(string url, string savePath);
+    string GetExtension(string contentType);
     Task<UserType?> FindUserByEmailAddress(string emailAddress);
     Task<UserType?> GetCognitoUser(string id);
     Tuple<bool, string> CheckTokenSub(string tokenString, string userId);
@@ -49,17 +51,33 @@ public class HelperService : IHelperService
         }
     }
 
-    public async Task<string> UploadFile(IFormFile file, string savePath)
+    public async Task<string> UploadFile(ImageModel file, string savePath)
     {
-        if (file == null || file.Length == 0)
+        if (file == null || file.fileData.Length == 0)
         {
             throw new ArgumentException("No file uploaded.");
         }
-        
-        Console.WriteLine($"Size of file being uploaded is {file.Length / 1024} KiB.");
+
+        var extension = GetExtension(file.ContentType);
+
+        // Convert base64 string to byte array
+        var imageBytes = Convert.FromBase64String(file.fileData);
+
+        // Save the byte array to a memory stream
+        await using var memoryStream = new MemoryStream(imageBytes);
+
+        // Convert MemoryStream to IFormFile
+        var savefile = new FormFile(memoryStream, 0, memoryStream.Length, null, "image" + extension)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = file.ContentType
+        };
+
+        Console.WriteLine($"Size of file being uploaded is {file.fileData.Length / 1024} KiB.");
 
         // Return the new filename
-        return await _fileStorageService.SaveFileAsync(file, savePath);
+        return await _fileStorageService.SaveFileAsync(savefile, savePath);
+
     }
 
     // Helper function to find a user by email address (assuming that email is unique)
@@ -111,5 +129,20 @@ public class HelperService : IHelperService
             return Tuple.Create(true, "");
         
         return Tuple.Create(false, "Sub in the IdToken doesn't match user id in request body.");
+    }
+
+    public string GetExtension(string contentType)
+    {
+        switch (contentType)
+        {
+            case "image/jpeg":
+                return ".jpg";
+            case "image/png":
+                return ".png";
+            case "image/gif":
+                return ".gif";
+            default:
+                throw new ArgumentException("Content type not recognized.", nameof(contentType));
+        }
     }
 }

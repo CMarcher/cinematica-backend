@@ -10,6 +10,16 @@ public interface IFileStorageService
 
 public class LocalFileStorageService : IFileStorageService
 {
+
+    private readonly ImageSettings _imageSettings;
+
+    public LocalFileStorageService(ImageSettings imageSettings)
+    {
+        _imageSettings = imageSettings;
+    }
+
+
+
     public async Task<string> SaveFileAsync(IFormFile file, string path)
     {
         // Generate a unique filename
@@ -17,6 +27,7 @@ public class LocalFileStorageService : IFileStorageService
 
         // Combine the savePath and the unique filename
         var fullPath = Path.Combine(path, fileName);
+        fullPath = Path.Combine(_imageSettings.UploadLocation, fullPath);
 
         await using var stream = new FileStream(fullPath, FileMode.Create);
         

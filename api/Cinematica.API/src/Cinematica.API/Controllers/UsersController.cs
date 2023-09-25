@@ -348,7 +348,7 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-profile-picture
         [HttpPost("set-profile-picture")]
-        public async Task<IActionResult> SetProfilePicture([FromForm] SetPictureRequest model)
+        public async Task<IActionResult> SetProfilePicture([FromBody] SetPictureRequest model)
         {
             // checks if id token sub matches user id in request
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
@@ -356,7 +356,7 @@ namespace Cinematica.API.Controllers
                 return Unauthorized(new { message = valid.Item2 });
 
             var user = await _context.Users.FindAsync(model.UserId);
-            var filepath = await _helper.UploadFile(model.File, _usersFiles);
+            var filepath = await _helper.UploadFile(model.Image, _usersFiles);
             user.ProfilePicture = filepath;
             await _context.SaveChangesAsync();
 
@@ -365,7 +365,7 @@ namespace Cinematica.API.Controllers
 
         // POST api/<UsersController>/set-cover-picture
         [HttpPost("set-cover-picture")]
-        public async Task<IActionResult> SetCoverPicture([FromForm] SetPictureRequest model)
+        public async Task<IActionResult> SetCoverPicture([FromBody] SetPictureRequest model)
         {
             // checks if id token sub matches user id in request
             var valid = _helper.CheckTokenSub(HttpContext.Request.Headers["Authorization"].ToString(), model.UserId);
@@ -373,7 +373,7 @@ namespace Cinematica.API.Controllers
                 return Unauthorized(new { message = valid.Item2 });
 
             var user = await _context.Users.FindAsync(model.UserId);
-            var filepath = await _helper.UploadFile(model.File, _usersFiles);
+            var filepath = await _helper.UploadFile(model.Image, _usersFiles);
             user.CoverPicture = filepath;
             
             await _context.SaveChangesAsync();

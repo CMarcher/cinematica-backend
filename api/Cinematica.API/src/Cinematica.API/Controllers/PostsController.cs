@@ -61,14 +61,14 @@ namespace Cinematica.API.Controllers
                 .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
                 .ToListAsync();
 
-            var profilePicture = post.User.ProfilePicture;
-            if (profilePicture != null)
-                profilePicture = _imageSettings.ServeLocation + "users/" + profilePicture;
+            if (post.User.ProfilePicture != null)
+                post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
+
             return Ok(new PostDetails()
             {
                 Post = post,
                 UserName = post.User.UserName,
-                ProfilePicture = profilePicture,
+                ProfilePicture = post.User.ProfilePicture,
                 LikesCount = likesCount,
                 CommentsCount = commentsCount,
                 YouLike = youLike,
@@ -83,6 +83,7 @@ namespace Cinematica.API.Controllers
         {
             // Get the "page" of posts
             var posts = await _context.Posts
+                .Include(p=>p.User)
                 .OrderByDescending(p => p.CreatedAt) // Order by creation date
                 .Skip((page - 1) * 10) // Skip the posts before the current page
                 .Take(10) // Take only the posts of the current page
@@ -97,11 +98,30 @@ namespace Cinematica.API.Controllers
 
             foreach (var post in posts)
             {
-                var postDetails = await GetPost(post.PostId, userId);
-                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                {
-                    postDetailsList.Add(details);
-                }
+                var postDetails = new PostDetails();
+                //append prefix to post image if not null
+                if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
+
+                postDetails.Post = post;
+
+                var youLike = false;
+                //Get number of replies attached to post
+                postDetails.CommentsCount = await _context.Replies.CountAsync(r => r.PostId == post.PostId);
+                //Get count of likes
+                postDetails.LikesCount = await _context.Likes.CountAsync(l => l.PostId == post.PostId);
+                //Get if logged in user likes this post
+                if (userId != null) youLike = await _context.Likes.AnyAsync(l => l.PostId == post.PostId && l.UserId == userId);
+                postDetails.YouLike = youLike;
+                // Get the movies for the post
+                postDetails.Movies = await _context.MovieSelections
+                    .Where(m => m.PostId == post.PostId)
+                    .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                    .ToListAsync();
+                if (post.User.ProfilePicture != null)
+                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
+                postDetails.ProfilePicture = post.User.ProfilePicture;
+
+                postDetailsList.Add(postDetails);
             }
 
             // Return the paginated list of PostDetails
@@ -125,6 +145,7 @@ namespace Cinematica.API.Controllers
             // Get the "page" of posts from the users that the current user is following
             var posts = await _context.Posts
                 .Where(p => followingIds.Contains(p.UserId)) // Filter by following users
+                .Include(p=>p.User)
                 .OrderByDescending(p => p.CreatedAt) // Order by creation date
                 .Skip((page - 1) * 10) // Skip the posts before the current page
                 .Take(10) // Take only the posts of the current page
@@ -139,11 +160,30 @@ namespace Cinematica.API.Controllers
 
             foreach (var post in posts)
             {
-                var postDetails = await GetPost(post.PostId, userId);
-                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                {
-                    postDetailsList.Add(details);
-                }
+                var postDetails = new PostDetails();
+                //append prefix to post image if not null
+                if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
+
+                postDetails.Post = post;
+
+                var youLike = false;
+                //Get number of replies attached to post
+                postDetails.CommentsCount = await _context.Replies.CountAsync(r => r.PostId == post.PostId);
+                //Get count of likes
+                postDetails.LikesCount = await _context.Likes.CountAsync(l => l.PostId == post.PostId);
+                //Get if logged in user likes this post
+                if (userId != null) youLike = await _context.Likes.AnyAsync(l => l.PostId == post.PostId && l.UserId == userId);
+                postDetails.YouLike = youLike;
+                // Get the movies for the post
+                postDetails.Movies = await _context.MovieSelections
+                    .Where(m => m.PostId == post.PostId)
+                    .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                    .ToListAsync();
+                if (post.User.ProfilePicture != null)
+                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
+                postDetails.ProfilePicture = post.User.ProfilePicture;
+
+                postDetailsList.Add(postDetails);
             }
 
             // Return the paginated list of PostDetails
@@ -172,11 +212,29 @@ namespace Cinematica.API.Controllers
 
             foreach (var post in posts)
             {
-                var postDetails = await GetPost(post.PostId);
-                if (postDetails is OkObjectResult okResult && okResult.Value is PostDetails details)
-                {
-                    postDetailsList.Add(details);
-                }
+                var postDetails = new PostDetails();
+                //append prefix to post image if not null
+                if (post.Image != null) post.Image = _imageSettings.ServeLocation + "posts/" + post.Image;
+
+                postDetails.Post = post;
+
+                //Get number of replies attached to post
+                postDetails.CommentsCount = await _context.Replies.CountAsync(r => r.PostId == post.PostId);
+                //Get count of likes
+                postDetails.LikesCount = await _context.Likes.CountAsync(l => l.PostId == post.PostId);
+                
+                postDetails.YouLike = false;
+                
+                // Get the movies for the post
+                postDetails.Movies = await _context.MovieSelections
+                    .Where(m => m.PostId == post.PostId)
+                    .Select(m => DBMovie.DbMovieToSimpleMovie(m.Movie))
+                    .ToListAsync();
+                if (post.User.ProfilePicture != null)
+                    post.User.ProfilePicture = _imageSettings.ServeLocation + "users/" + post.User.ProfilePicture;
+                postDetails.ProfilePicture = post.User.ProfilePicture;
+
+                postDetailsList.Add(postDetails);
             }
 
             // Return the paginated list of PostDetails
@@ -290,9 +348,9 @@ namespace Cinematica.API.Controllers
 
         [HttpPost("upload")]
         [AllowAnonymous]
-        public async Task<IActionResult> UploadPostImage(IFormFile imageFile)
+        public async Task<IActionResult> UploadPostImage(ImageModel imageFile)
         {
-            if (imageFile == null)
+            if (imageFile.fileData == null)
                 return BadRequest(new { message = "No file uploaded." });
 
             var fileName = await _helper.UploadFile(imageFile, _postFiles);

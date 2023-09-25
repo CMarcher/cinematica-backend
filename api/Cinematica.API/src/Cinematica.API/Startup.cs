@@ -47,7 +47,7 @@ public class Startup
         {
             imageSettings.UploadLocation = Path.Combine(Environment.ContentRootPath,
                 imageSettings.UploadLocation);
-            services.AddSingleton<IFileStorageService>(new LocalFileStorageService());
+            services.AddSingleton<IFileStorageService>(new LocalFileStorageService(imageSettings));
         }
         else
         {
