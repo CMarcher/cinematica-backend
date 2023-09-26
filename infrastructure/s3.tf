@@ -40,10 +40,6 @@ resource "aws_s3_bucket_notification" "web_app_events" {
 
 resource "aws_s3_bucket" "media_bucket" {
     bucket = "cinematica-media"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_s3_object" "movies_directory" {
