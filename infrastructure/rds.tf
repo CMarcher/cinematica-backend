@@ -10,7 +10,6 @@ resource "aws_db_instance" "cinematica_database" {
     port = 5432
     skip_final_snapshot = false
     final_snapshot_identifier = local.database_snapshot_identifier
-    snapshot_identifier = local.database_snapshot_identifier
     
     db_subnet_group_name = aws_db_subnet_group.database_subnet_group.id
     vpc_security_group_ids = [aws_security_group.database_to_lambda_security_group.id]

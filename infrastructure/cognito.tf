@@ -22,10 +22,6 @@ resource "aws_cognito_user_pool_client" "cinematica_cognito_client" {
         id_token      = "minutes"
         refresh_token = "days"
     }
-    
-    lifecycle {
-        prevent_destroy = true
-    }
 }
 
 resource "aws_cognito_user_pool" "cinematica_user_pool" {
